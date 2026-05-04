@@ -30,18 +30,10 @@ export default function HomeMobile() {
   const anatomyRef = useRef<HTMLDivElement>(null);
   const blizRef = useRef<HTMLDivElement>(null);
 
-  const { scrollY } = useScroll();
-  const [threatsOffset, setThreatsOffset] = useState(0);
-  const threatsHeight = 3200;
-
-  useEffect(() => {
-    if (threatsRef.current && isReady) {
-      const rect = threatsRef.current.getBoundingClientRect();
-      setThreatsOffset(rect.top + window.scrollY);
-    }
-  }, [isReady]);
-
-  const threatsProgressRaw = useTransform(scrollY, [threatsOffset, threatsOffset + threatsHeight - 800], [0, 1], { clamp: true });
+  const { scrollYProgress: threatsProgressRaw } = useScroll({
+    target: threatsRef,
+    offset: ["start start", "end end"],
+  });
   const threatsProgress = threatsProgressRaw;
 
   const maskExpansionProgress = useMotionValue(0);
