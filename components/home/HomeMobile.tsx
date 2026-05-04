@@ -32,7 +32,7 @@ export default function HomeMobile() {
 
   const { scrollY } = useScroll();
   const [threatsOffset, setThreatsOffset] = useState(0);
-  const threatsHeight = 4200;
+  const threatsHeight = 3200;
 
   useEffect(() => {
     if (threatsRef.current && isReady) {
@@ -75,11 +75,11 @@ export default function HomeMobile() {
     };
   }, [threatsProgress, setNavHidden]);
 
-  const housePanY = useTransform(threatsProgress, [0.06, 0.81], ["0vh", "-80vh"], { clamp: true });
+  const housePanY = useTransform(threatsProgress, [0.06, 0.72], ["0vh", "-80vh"], { clamp: true });
 
-  const carouselRawOpacity = useTransform(threatsProgress, [0.6, 0.65], [0, 1]);
-  const carouselRawY = useTransform(threatsProgress, [0.6, 0.65], [100, 0]);
-  const carouselRawScale = useTransform(threatsProgress, [0.6, 0.65], [0.8, 1]);
+  const carouselRawOpacity = useTransform(threatsProgress, [0.74, 0.82], [0, 1]);
+  const carouselRawY = useTransform(threatsProgress, [0.74, 0.82], [100, 0]);
+  const carouselRawScale = useTransform(threatsProgress, [0.74, 0.82], [0.8, 1]);
 
   const carouselOpacity = carouselRawOpacity;
   const carouselScale = carouselRawScale;
@@ -231,7 +231,7 @@ export default function HomeMobile() {
       </section>
 
       {/* 3. EVERYDAY THREATS */}
-      <motion.section data-theme="light" ref={threatsRef} className="h-[420vh] relative mb-24 block scroll-mt-0 bg-white" style={{ position: 'relative' }}>
+      <motion.section data-theme="light" ref={threatsRef} className="h-[320vh] relative mb-24 block scroll-mt-0 bg-white" style={{ position: 'relative' }}>
         {/* Dark overlay for section end transition */}
         <motion.div style={{ opacity: sectionDarkOpacity }} className="absolute inset-0 bg-[#121416] z-0 pointer-events-none" />
         <div style={{ position: 'sticky', top: 0, height: '100dvh', zIndex: 50 }} className="w-full flex flex-col items-center justify-center">
