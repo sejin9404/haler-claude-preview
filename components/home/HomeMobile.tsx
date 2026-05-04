@@ -30,10 +30,18 @@ export default function HomeMobile() {
   const anatomyRef = useRef<HTMLDivElement>(null);
   const blizRef = useRef<HTMLDivElement>(null);
 
-  const { scrollYProgress: threatsProgressRaw } = useScroll({
-    target: threatsRef,
-    offset: ["start start", "end end"],
-  });
+  const { scrollY } = useScroll();
+  const [threatsOffset, setThreatsOffset] = useState(0);
+  const threatsHeight = 4200;
+
+  useEffect(() => {
+    if (threatsRef.current && isReady) {
+      const rect = threatsRef.current.getBoundingClientRect();
+      setThreatsOffset(rect.top + window.scrollY);
+    }
+  }, [isReady]);
+
+  const threatsProgressRaw = useTransform(scrollY, [threatsOffset, threatsOffset + threatsHeight - 800], [0, 1], { clamp: true });
   const threatsProgress = threatsProgressRaw;
 
   const maskExpansionProgress = useMotionValue(0);
@@ -67,17 +75,17 @@ export default function HomeMobile() {
     };
   }, [threatsProgress, setNavHidden]);
 
-  const housePanY = useTransform(threatsProgress, [0.06, 0.72], ["0vh", "-80vh"], { clamp: true });
+  const housePanY = useTransform(threatsProgress, [0.06, 0.81], ["0%", "-160%"], { clamp: true });
 
-  const carouselRawOpacity = useTransform(threatsProgress, [0.74, 0.82], [0, 1]);
-  const carouselRawY = useTransform(threatsProgress, [0.74, 0.82], [100, 0]);
-  const carouselRawScale = useTransform(threatsProgress, [0.74, 0.82], [0.8, 1]);
+  const carouselRawOpacity = useTransform(threatsProgress, [0.6, 0.65], [0, 1]);
+  const carouselRawY = useTransform(threatsProgress, [0.6, 0.65], [100, 0]);
+  const carouselRawScale = useTransform(threatsProgress, [0.6, 0.65], [0.8, 1]);
 
   const carouselOpacity = carouselRawOpacity;
   const carouselScale = carouselRawScale;
 
   const maskScale = useTransform(maskExpansionProgress, [0, 1], [0.8, 1]);
-  const sectionDarkOpacity = useTransform(threatsProgressRaw, [0.9, 1.0], [0, 1]);
+  const sectionBgColor = useTransform(threatsProgressRaw, [0.9, 1.0], ["#ffffff", "#121416"]);
   const lightLayerOpacity = useTransform(maskExpansionProgress, [0, 1], [1, 0]);
   const darkLayerOpacity = useTransform(maskExpansionProgress, [0, 1], [0, 1]);
   const maskRadius = useTransform(maskExpansionProgress, [0, 1], [64, 0]);
@@ -223,9 +231,7 @@ export default function HomeMobile() {
       </section>
 
       {/* 3. EVERYDAY THREATS */}
-      <motion.section data-theme="light" ref={threatsRef} className="h-[320vh] relative mb-24 block scroll-mt-0 bg-white" style={{ position: 'relative' }}>
-        {/* Dark overlay for section end transition */}
-        <motion.div style={{ opacity: sectionDarkOpacity }} className="absolute inset-0 bg-[#121416] z-0 pointer-events-none" />
+      <motion.section data-theme="light" ref={threatsRef} className="h-[420vh] relative mb-24 block scroll-mt-0" style={{ backgroundColor: sectionBgColor }}>
         <div style={{ position: 'sticky', top: 0, height: '100dvh', zIndex: 50 }} className="w-full flex flex-col items-center justify-center">
           <motion.div
             style={{ scale: maskScale, borderRadius: maskRadius, paddingTop: maskPaddingTop }}
@@ -253,11 +259,11 @@ export default function HomeMobile() {
                 className="relative w-full origin-top flex justify-center"
               >
                 <Image
-                  src="/images/home-structure-mobile.webp"
-                  width={750}
-                  height={3075}
+                  src="/images/home-structure.webp"
+                  width={1509}
+                  height={6188}
                   priority
-                  className="w-full h-auto max-none px-6"
+                  className="w-full h-auto max-none px-6 brightness-110 contrast-110"
                   alt="House"
                 />
                 <Popup text="Dust & Particles" top="15%" side="right" progress={threatsProgress} trigger={0.09} />
