@@ -30,18 +30,10 @@ export default function HomeMobile() {
   const anatomyRef = useRef<HTMLDivElement>(null);
   const blizRef = useRef<HTMLDivElement>(null);
 
-  const { scrollY } = useScroll();
-  const [threatsOffset, setThreatsOffset] = useState(0);
-  const threatsHeight = 4200;
-
-  useEffect(() => {
-    if (threatsRef.current && isReady) {
-      const rect = threatsRef.current.getBoundingClientRect();
-      setThreatsOffset(rect.top + window.scrollY);
-    }
-  }, [isReady]);
-
-  const threatsProgressRaw = useTransform(scrollY, [threatsOffset, threatsOffset + threatsHeight - 800], [0, 1], { clamp: true });
+  const { scrollYProgress: threatsProgressRaw } = useScroll({
+    target: threatsRef,
+    offset: ["start start", "end end"],
+  });
   const threatsProgress = threatsProgressRaw;
 
   const maskExpansionProgress = useMotionValue(0);
@@ -75,17 +67,17 @@ export default function HomeMobile() {
     };
   }, [threatsProgress, setNavHidden]);
 
-  const housePanY = useTransform(threatsProgress, [0.06, 0.81], ["0vh", "-80vh"], { clamp: true });
+  const housePanY = useTransform(threatsProgress, [0.06, 0.70], ["0vh", "-65vh"], { clamp: true });
 
-  const carouselRawOpacity = useTransform(threatsProgress, [0.6, 0.65], [0, 1]);
-  const carouselRawY = useTransform(threatsProgress, [0.6, 0.65], [100, 0]);
-  const carouselRawScale = useTransform(threatsProgress, [0.6, 0.65], [0.8, 1]);
+  const carouselRawOpacity = useTransform(threatsProgress, [0.73, 0.82], [0, 1]);
+  const carouselRawY = useTransform(threatsProgress, [0.73, 0.82], [100, 0]);
+  const carouselRawScale = useTransform(threatsProgress, [0.73, 0.82], [0.8, 1]);
 
   const carouselOpacity = carouselRawOpacity;
   const carouselScale = carouselRawScale;
 
   const maskScale = useTransform(maskExpansionProgress, [0, 1], [0.8, 1]);
-  const sectionDarkOpacity = useTransform(threatsProgressRaw, [0.9, 1.0], [0, 1]);
+  const sectionDarkOpacity = useTransform(threatsProgressRaw, [0.88, 0.97], [0, 1]);
   const lightLayerOpacity = useTransform(maskExpansionProgress, [0, 1], [1, 0]);
   const darkLayerOpacity = useTransform(maskExpansionProgress, [0, 1], [0, 1]);
   const maskRadius = useTransform(maskExpansionProgress, [0, 1], [64, 0]);
@@ -231,7 +223,7 @@ export default function HomeMobile() {
       </section>
 
       {/* 3. EVERYDAY THREATS */}
-      <motion.section data-theme="light" ref={threatsRef} className="h-[420vh] relative mb-24 block scroll-mt-0 bg-white" style={{ position: 'relative' }}>
+      <motion.section data-theme="light" ref={threatsRef} className="h-[310vh] relative mb-24 block scroll-mt-0 bg-white" style={{ position: 'relative' }}>
         {/* Dark overlay for section end transition */}
         <motion.div style={{ opacity: sectionDarkOpacity }} className="absolute inset-0 bg-[#121416] z-0 pointer-events-none" />
         <div style={{ position: 'sticky', top: 0, height: '100dvh', zIndex: 50 }} className="w-full flex flex-col items-center justify-center">
@@ -268,12 +260,12 @@ export default function HomeMobile() {
                   className="w-full h-auto max-none px-6"
                   alt="House"
                 />
-                <Popup text="Dust & Particles" top="15%" side="right" progress={threatsProgress} trigger={0.09} />
-                <Popup text="Hidden Spores" top="30%" side="left" progress={threatsProgress} trigger={0.13} />
-                <Popup text="Invisible Dander" top="45%" side="right" progress={threatsProgress} trigger={0.17} />
-                <Popup text="Pollens" top="60%" side="left" progress={threatsProgress} trigger={0.21} />
-                <Popup text="Molds" top="75%" side="right" progress={threatsProgress} trigger={0.25} />
-                <Popup text="VOCs" top="90%" side="left" progress={threatsProgress} trigger={0.29} />
+                <Popup text="Dust & Particles" top="15%" side="right" progress={threatsProgress} trigger={0.10} />
+                <Popup text="Hidden Spores" top="30%" side="left" progress={threatsProgress} trigger={0.18} />
+                <Popup text="Invisible Dander" top="45%" side="right" progress={threatsProgress} trigger={0.26} />
+                <Popup text="Pollens" top="60%" side="left" progress={threatsProgress} trigger={0.34} />
+                <Popup text="Molds" top="75%" side="right" progress={threatsProgress} trigger={0.42} />
+                <Popup text="VOCs" top="90%" side="left" progress={threatsProgress} trigger={0.50} />
               </motion.div>
             </motion.div>
 
