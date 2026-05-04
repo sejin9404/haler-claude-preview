@@ -75,7 +75,7 @@ export default function HomeMobile() {
     };
   }, [threatsProgress, setNavHidden]);
 
-  const housePanY = useTransform(threatsProgress, [0.06, 0.81], ["0vh", "-160vh"], { clamp: true });
+  const housePanY = useTransform(threatsProgress, [0.06, 0.81], ["0vh", "-80vh"], { clamp: true });
 
   const carouselRawOpacity = useTransform(threatsProgress, [0.6, 0.65], [0, 1]);
   const carouselRawY = useTransform(threatsProgress, [0.6, 0.65], [100, 0]);
