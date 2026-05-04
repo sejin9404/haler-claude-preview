@@ -263,7 +263,7 @@ export default function HomeMobile() {
                   width={1509}
                   height={6188}
                   priority
-                  className="w-full h-auto max-none px-6 brightness-110 contrast-110"
+                  className="w-full h-auto max-none px-6"
                   alt="House"
                 />
                 <Popup text="Dust & Particles" top="15%" side="right" progress={threatsProgress} trigger={0.09} />
