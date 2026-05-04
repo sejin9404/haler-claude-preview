@@ -39,16 +39,17 @@ export default function HomeMobile() {
   const maskExpansionProgress = useMotionValue(0);
   const houseScale = 0.9;
   const [zoomTriggered, setZoomTriggered] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
+  const [isZooming, setIsZooming] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = threatsProgressRaw.on("change", (v: number) => {
+    const unsubscribe = threatsProgressRaw.on("change", (v) => {
       if (v > 0.03 && !zoomTriggered) {
         setZoomTriggered(true);
+        setIsZooming(true);
         animate(maskExpansionProgress, 1, {
           duration: 0.6,
           ease: [0.22, 1, 0.36, 1],
-          onComplete: () => setDarkMode(true),
+          onComplete: () => setIsZooming(false),
         });
       }
     });
@@ -56,7 +57,7 @@ export default function HomeMobile() {
   }, [threatsProgressRaw, zoomTriggered, maskExpansionProgress]);
 
   useEffect(() => {
-    const unsubscribe = threatsProgress.on("change", (latest: number) => {
+    const unsubscribe = threatsProgress.on("change", (latest) => {
       if (latest > 0.02 && latest < 0.98) setNavHidden(true);
       else setNavHidden(false);
     });
@@ -68,13 +69,20 @@ export default function HomeMobile() {
 
   const housePanY = useTransform(threatsProgress, [0.06, 0.70], ["0vh", "-65vh"], { clamp: true });
 
-  const carouselOpacity = useTransform(threatsProgress, [0.73, 0.82], [0, 1]);
+  const carouselRawOpacity = useTransform(threatsProgress, [0.73, 0.82], [0, 1]);
   const carouselRawY = useTransform(threatsProgress, [0.73, 0.82], [100, 0]);
-  const carouselScale = useTransform(threatsProgress, [0.73, 0.82], [0.8, 1]);
+  const carouselRawScale = useTransform(threatsProgress, [0.73, 0.82], [0.8, 1]);
+
+  const carouselOpacity = carouselRawOpacity;
+  const carouselScale = carouselRawScale;
 
   const maskScale = useTransform(maskExpansionProgress, [0, 1], [0.8, 1]);
   const sectionDarkOpacity = useTransform(threatsProgressRaw, [0.88, 0.97], [0, 1]);
+  const lightLayerOpacity = useTransform(maskExpansionProgress, [0, 1], [1, 0]);
   const darkLayerOpacity = useTransform(maskExpansionProgress, [0, 1], [0, 1]);
+  const maskRadius = useTransform(maskExpansionProgress, [0, 1], [64, 0]);
+  const maskPaddingTop = useTransform(maskExpansionProgress, [0, 1], [64, 80]);
+  const titleTextColor = useTransform(maskExpansionProgress, [0, 0.5], ["#111111", "#ffffff"]);
 
   // 2. Breath Balance Slot Logic
   const balanceItems = useMemo(() => ['Soothing Voice', 'Instant Hydration', 'Delicate Relief', 'Active Refresh'], []);
@@ -82,7 +90,7 @@ export default function HomeMobile() {
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setBalanceIndex((prev: number) => prev + 1);
+      setBalanceIndex((prev) => prev + 1);
     }, 3500);
     return () => clearInterval(timer);
   }, []);
@@ -98,8 +106,29 @@ export default function HomeMobile() {
   const { scrollYProgress: blizProgressRaw } = useScroll({ target: blizRef, offset: ["start start", "end end"] });
   const blizProgress = useSpring(blizProgressRaw, { stiffness: 50, damping: 40 });
 
-  const carouselTopVal = '45%';
-  const carouselYCentered = useTransform(carouselRawY, (v: number) => `calc(${v}px - 50%)`);
+  const [titleHeight, setTitleHeight] = useState(0);
+  useEffect(() => {
+    if (titleRef.current && isReady) setTitleHeight(titleRef.current.offsetHeight);
+  }, [isReady]);
+
+  const carouselTopVal = `max(45%, calc(${80 + titleHeight + 256}px + 4vh))`;
+  const [carouselAutoHoldScale, setCarouselAutoHoldScale] = useState(1);
+  useEffect(() => {
+    if (isReady) {
+      const vh = window.innerHeight / 100;
+      const titleBottom = 80 + titleHeight;
+      const safetyTopEdge = titleBottom + (4 * vh);
+      const targetCenter = window.innerHeight * 0.45;
+      const actualCenter = Math.max(targetCenter, safetyTopEdge + 256);
+      const actualTopEdge = actualCenter - 256;
+      const availableHeight = (95 * vh) - actualTopEdge;
+      const newScale = Math.min(1, Math.max(0.4, availableHeight / 512));
+      setCarouselAutoHoldScale(newScale);
+    }
+  }, [isReady, titleHeight]);
+
+  const finalCarouselScale = useTransform(carouselScale, (s) => s * carouselAutoHoldScale);
+  const carouselYCentered = useTransform(carouselRawY, (v) => `calc(${v}px - 50%)`);
   const blizTextOpacity = useTransform(blizProgress, [0.1, 0.4], [1, 0]);
   const blizTextScale = useTransform(blizProgress, [0.1, 0.4], [1, 1.2]);
   const blizRotation = useTransform(blizProgress, [0.1, 0.8], [0, 90]);
@@ -199,17 +228,18 @@ export default function HomeMobile() {
         <motion.div style={{ opacity: sectionDarkOpacity }} className="absolute inset-0 bg-[#121416] z-0 pointer-events-none" />
         <div style={{ position: 'sticky', top: 0, height: '100dvh', zIndex: 50 }} className="w-full flex flex-col items-center justify-center">
           <motion.div
-            style={{ scale: maskScale, borderRadius: zoomTriggered ? 0 : 64, paddingTop: zoomTriggered ? 80 : 64 }}
-            className="w-full h-full overflow-hidden relative flex flex-col items-center origin-center transition-[border-radius,padding-top] duration-[600ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
+            style={{ scale: maskScale, borderRadius: maskRadius, paddingTop: maskPaddingTop }}
+            className="w-full h-full overflow-hidden relative flex flex-col items-center origin-center"
           >
             {/* Light layer (initial state) */}
-            <motion.div style={{ opacity: darkLayerOpacity, pointerEvents: 'none' }} className="absolute inset-0 z-0 bg-gradient-to-b from-[#2c3135] to-[#121416]" />
-            <div className="absolute inset-0 z-0 bg-gradient-to-b from-white to-[#e2e8f0]" />
+            <motion.div style={{ opacity: lightLayerOpacity }} className="absolute inset-0 z-0 bg-gradient-to-b from-white to-[#e2e8f0]" />
+            {/* Dark layer (expanded state) */}
+            <motion.div style={{ opacity: darkLayerOpacity }} className="absolute inset-0 z-0 bg-gradient-to-b from-[#2c3135] to-[#121416]" />
             <div className="text-center mb-4 px-8 z-10 relative" ref={titleRef}>
-              <h2 className={`text-3xl font-light mb-2 leading-tight transition-colors duration-500 ${zoomTriggered ? 'text-white' : 'text-[#111111]'}`}>
+              <motion.h2 style={{ color: titleTextColor }} className="text-3xl font-light mb-2 leading-tight">
                 You breathe in<br />
                 more than air.
-              </h2>
+              </motion.h2>
             </div>
             <motion.div
               style={{ y: housePanY, willChange: "transform" }}
@@ -243,7 +273,7 @@ export default function HomeMobile() {
             <motion.div
               style={{
                 opacity: carouselOpacity,
-                scale: carouselScale,
+                scale: finalCarouselScale,
                 y: carouselYCentered,
                 top: carouselTopVal,
                 willChange: "transform, opacity",
