@@ -1,0 +1,1427 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BLIZ - Premium Backer Portal</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;400;700&family=Outfit:wght@200;400;600;800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --p-blue: #1C88FF;
+            --dark: #111418;
+            --apple: #F2F5F8;
+            --green: #05CE78;
+            --err: #FF4B4B;
+            --font-p: 'Poppins', sans-serif;
+            --font-o: 'Outfit', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background: #F8FAFC;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px 15px;
+            color: var(--dark);
+            overflow: hidden;
+        }
+
+        .glass-card {
+            background: #FFF;
+            border-radius: 54px;
+            width: 100%;
+            max-width: 1400px;
+            padding: 50px 70px;
+            box-shadow: 0 40px 120px rgba(0, 0, 0, 0.06);
+            border: 1.5px solid #fff;
+            position: relative;
+            max-height: 95vh;
+            overflow-y: auto;
+        }
+
+        .fade-in {
+            animation: slideUpFade 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes slideUpFade {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* AUTH VIEW */
+        .step-center {
+            text-align: center;
+            max-width: 650px;
+            margin: 0 auto;
+            padding: 30px 0;
+        }
+
+        .h1-title {
+            font-family: var(--font-o);
+            font-size: 3.5rem;
+            font-weight: 600;
+            letter-spacing: -0.05em;
+            line-height: 1.1;
+            margin: 15px 0;
+        }
+
+        .p-desc-auth {
+            font-family: var(--font-p);
+            font-size: 1.15rem;
+            color: #64748B;
+            margin-bottom: 50px;
+            font-weight: 200;
+            line-height: 1.6;
+        }
+
+        .f-large {
+            font-family: var(--font-p);
+            width: 100%;
+            padding: 26px 45px;
+            border-radius: 1000px;
+            border: 1.5px solid rgba(0, 0, 0, 0.06);
+            font-size: 1.25rem;
+            text-align: center;
+            margin-bottom: 35px;
+            outline: none;
+            background: #FFF;
+            font-weight: 200;
+        }
+
+        .btn-action {
+            font-family: var(--font-o);
+            background: var(--dark);
+            color: white;
+            padding: 22px 75px;
+            border-radius: 1000px;
+            font-weight: 500;
+            font-size: 1.3rem;
+            border: none;
+            cursor: pointer;
+            transition: 0.4s;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-action:hover {
+            transform: scale(1.05);
+            background: #222;
+        }
+
+        .otp-slot {
+            width: 70px;
+            height: 85px;
+            background: rgba(0, 0, 0, 0.02);
+            border: 1.5px solid rgba(0, 0, 0, 0.05);
+            border-radius: 28px;
+            font-family: var(--font-o);
+            font-size: 2.2rem;
+            font-weight: 600;
+            text-align: center;
+            margin: 0 8px;
+            outline: none;
+            transition: 0.3s;
+            color: var(--p-blue);
+            caret-color: transparent;
+        }
+
+        .otp-slot:focus {
+            border-color: var(--p-blue);
+            background: #FFF;
+            box-shadow: 0 15px 35px rgba(28, 136, 255, 0.1);
+            transform: translateY(-5px);
+        }
+
+        /* DASHBOARD - Layout Precision */
+        #view-dash {
+            font-family: var(--font-p);
+            font-weight: 400;
+        }
+
+        .dash-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 60px;
+            padding-bottom: 40px;
+            border-bottom: 1.5px solid rgba(0, 0, 0, 0.03);
+        }
+
+        .hello-area {
+            margin-top: 55px;
+        }
+
+        .h-hello {
+            font-size: 3.1rem;
+            font-weight: 400;
+            letter-spacing: -0.05em;
+            line-height: 1;
+        }
+
+        .reward-info {
+            text-align: right;
+            max-width: 550px;
+        }
+
+        .reward-label {
+            font-size: 1rem;
+            font-weight: 500;
+            color: #94A3B8;
+            margin-bottom: 14px;
+            display: block;
+            letter-spacing: 0;
+            text-transform: none;
+        }
+
+        .reward-val {
+            font-size: 1.45rem;
+            font-weight: 400;
+            color: var(--p-blue);
+            display: block;
+            line-height: 1.1;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 460px 1px 1fr;
+            gap: 75px;
+            align-items: start;
+        }
+
+        .vertical-line {
+            background: rgba(0, 0, 0, 0.04);
+            width: 1px;
+            height: 100%;
+            min-height: 600px;
+        }
+
+        .sec-label {
+            font-size: 1.15rem;
+            font-weight: 500;
+            color: var(--p-blue);
+            margin-bottom: 35px;
+            display: block;
+            letter-spacing: 0;
+            text-transform: none;
+        }
+
+        .item-card {
+            background: #fff;
+            padding: 22px 30px;
+            border-radius: 32px;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            margin-bottom: 18px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 80px;
+        }
+
+        .item-line {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .item-line.with-opt {
+            margin-bottom: 20px;
+        }
+
+        /* Only if it has color options below */
+        .item-name {
+            font-size: 1.35rem;
+            font-weight: 400;
+            letter-spacing: -0.04em;
+        }
+
+        .item-badge {
+            font-size: 1.35rem;
+            font-weight: 400;
+            color: var(--p-blue);
+        }
+
+        .opt-label {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #B0BEC5;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .color-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            width: 100%;
+            margin-bottom: 5px;
+            border-radius: 1000px;
+            transition: 0.3s;
+            padding: 5px;
+        }
+
+        .color-grid.error {
+            background: rgba(255, 75, 75, 0.08);
+            border: 1.5px solid var(--err);
+        }
+
+        .color-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 13px 20px;
+            border-radius: 1000px;
+            border: 1.5px solid rgba(0, 0, 0, 0.06);
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 0.93rem;
+            font-weight: 400;
+            width: 100%;
+            white-space: nowrap;
+            background: #FFF;
+        }
+
+        .color-btn.active {
+            background: var(--p-blue);
+            color: white;
+            border-color: var(--p-blue);
+        }
+
+        .dot {
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .acc-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 22px 35px;
+            background: rgba(0, 0, 0, 0.02);
+            border-radius: 28px;
+            margin-bottom: 10px;
+        }
+
+        .acc-row .item-name,
+        .acc-row .item-badge {
+            font-size: 1.15rem;
+            font-weight: 400;
+        }
+
+        /* FORM SYSTEM */
+        .f-group {
+            margin-bottom: 28px;
+            position: relative;
+        }
+
+        /* [LABEL HEADER] Flex for Inline Google Logo */
+        .f-label-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .f-label {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: var(--dark);
+            display: block;
+            letter-spacing: 0;
+            text-transform: none;
+            margin: 0 0 14px 0;
+        }
+
+        /* [GOODE LOGO] Full color professional style */
+        .powered-google {
+            font-size: 0.75rem;
+            color: #94A3B8;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: 500;
+            font-family: var(--font-p);
+        }
+
+        .powered-google img {
+            height: 13px;
+            opacity: 1;
+        }
+
+        .f-input-box {
+            background: rgba(0, 0, 0, 0.02);
+            border-radius: 22px;
+            padding: 18px 25px;
+            border: 1.5px solid rgba(0, 0, 0, 0.05);
+            width: 100%;
+            transition: 0.3s;
+            position: relative;
+        }
+
+        .f-input-box.error {
+            background: rgba(255, 75, 75, 0.08);
+            border-color: var(--err);
+        }
+
+        .f-input {
+            width: 100%;
+            border: none;
+            background: transparent;
+            font-family: var(--font-p);
+            font-size: 1.15rem;
+            font-weight: 400;
+            outline: none;
+            color: var(--dark);
+            height: 26px;
+        }
+
+        .f-input::placeholder {
+            color: #64748B;
+            opacity: 1;
+            font-weight: 200;
+        }
+
+        .f-input-box:focus-within {
+            background: rgba(0, 0, 0, 0.04);
+        }
+
+        /* AUTOCOMPLETE RESULTS */
+        .autocomplete-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #fff;
+            border-radius: 22px;
+            margin-top: 10px;
+            box-shadow: 0 15px 45px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            z-index: 1000;
+            overflow: hidden;
+            animation: fadeIn 0.3s forwards;
+            display: none;
+        }
+
+        .autocomplete-item {
+            padding: 18px 25px;
+            cursor: pointer;
+            transition: 0.2s;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+        }
+
+        .autocomplete-item:last-child {
+            border-bottom: none;
+        }
+
+        .autocomplete-item:hover {
+            background: rgba(0, 0, 0, 0.02);
+        }
+
+        .addr-text {
+            font-size: 1.05rem;
+            color: var(--dark);
+            line-height: 1.4;
+        }
+
+        .addr-sub {
+            font-size: 0.85rem;
+            color: #94A3B8;
+            display: block;
+            margin-top: 2px;
+        }
+
+        .msg-section {
+            margin-top: 45px;
+        }
+
+        .msg-box {
+            background: rgba(0, 0, 0, 0.02);
+            border-radius: 30px;
+            padding: 30px 25px;
+            border: 1px solid rgba(0, 0, 0, 0.015);
+        }
+
+        .msg-area {
+            width: 100%;
+            min-height: 110px;
+            background: transparent;
+            border: none;
+            outline: none;
+            font-family: var(--font-p);
+            font-size: 1.1rem;
+            color: var(--dark);
+            resize: none;
+            line-height: 1.6;
+            font-weight: 200;
+        }
+
+        .btn-submit {
+            background: var(--dark);
+            color: white;
+            border-radius: 1000px;
+            padding: 28px;
+            width: 100%;
+            font-weight: 500;
+            font-size: 1.5rem;
+            border: none;
+            cursor: pointer;
+            transition: 0.4s;
+            margin-top: 35px;
+            font-family: var(--font-o);
+            letter-spacing: -0.01em;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-submit:hover {
+            transform: scale(1.01);
+            background: #222;
+        }
+
+        .btn-submit.btn-done {
+            background: var(--p-blue) !important;
+            color: white !important;
+            cursor: default;
+            transform: none !important;
+        }
+
+        /* [NEW] COUNTRY PICKER STYLES */
+        .picker-container {
+            display: flex;
+            align-items: center;
+        }
+
+        .country-trigger {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            padding-right: 18px;
+            border-right: 1.5px solid rgba(0, 0, 0, 0.06);
+            margin-right: 18px;
+            white-space: nowrap;
+            transition: 0.3s;
+            height: 26px;
+        }
+
+        .country-trigger:hover {
+            opacity: 0.6;
+        }
+
+        .c-flag {
+            font-size: 1.2rem;
+        }
+
+        .c-code {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--dark);
+            font-family: var(--font-p);
+        }
+
+        .country-list {
+            position: absolute;
+            top: calc(100% + 10px);
+            left: 0;
+            background: #fff;
+            border-radius: 22px;
+            box-shadow: 0 15px 45px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            z-index: 2000;
+            width: 220px;
+            display: none;
+            overflow-y: auto;
+            max-height: 350px;
+            animation: fadeIn 0.3s forwards;
+        }
+
+        .country-item {
+            padding: 14px 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.02);
+            font-size: 0.9rem;
+            transition: 0.2s;
+        }
+
+        .country-item:last-child {
+            border-bottom: none;
+        }
+
+        .country-item:hover {
+            background: rgba(0, 0, 0, 0.04);
+            color: var(--p-blue);
+        }
+
+        .country-list::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .country-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .country-list::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 10px;
+        }
+
+        #toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #000;
+            color: white;
+            padding: 10px 25px; /* Slimmer */
+            border-radius: 1000px;
+            font-size: 0.85rem; /* Slimmer */
+            transition: 0.5s;
+            z-index: 10000;
+            pointer-events: none;
+            font-family: var(--font-p);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        .item-card.error {
+            border: 2px solid var(--err) !important;
+            background: rgba(255, 75, 75, 0.03) !important;
+        }
+
+        #toast.visible {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        #toast.error {
+            background: var(--err);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* [PREMIUM MOBILE OPTIMIZATION] - Especially for iPhone 16 Pro & High-end Devices */
+        @media screen and (max-width: 768px) {
+            body {
+                padding: 15px;
+                overflow: auto;
+                align-items: flex-start;
+                display: block; /* No center align on mobile for better scroll */
+            }
+
+            .glass-card {
+                padding: 40px 25px;
+                border-radius: 38px;
+                max-height: none;
+                box-shadow: 0 15px 50px rgba(0, 0, 0, 0.04);
+                margin: 15px 0 30px 0;
+            }
+
+            .h1-title {
+                font-size: 2.1rem;
+                line-height: 1.15;
+            }
+
+            .p-desc-auth {
+                font-size: 1.05rem;
+                margin-bottom: 40px;
+            }
+
+            .f-large {
+                padding: 22px 30px;
+                font-size: 1.1rem;
+                border-radius: 1000px;
+            }
+
+            .btn-action {
+                padding: 18px 45px;
+                font-size: 1.15rem;
+                width: 100%;
+            }
+
+            .otp-slot {
+                width: 45px;
+                height: 65px;
+                font-size: 1.6rem;
+                border-radius: 18px;
+                margin: 0 3px;
+            }
+
+            /* DASHBOARD MOBILE */
+            .h-hello {
+                font-size: 2.1rem;
+            }
+
+            .dash-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 25px;
+                margin-bottom: 40px;
+                padding-bottom: 30px;
+            }
+
+            .reward-info {
+                text-align: left;
+                width: 100%;
+            }
+
+            .reward-val {
+                font-size: 1.15rem;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+                gap: 50px;
+            }
+
+            .vertical-line {
+                display: none;
+            }
+
+            .sec-label {
+                font-size: 1rem;
+                margin-bottom: 25px;
+            }
+
+            .item-card {
+                padding: 20px 22px;
+                border-radius: 28px;
+            }
+
+            .item-name, .item-badge {
+                font-size: 1.1rem;
+            }
+
+            .color-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .color-btn {
+                padding: 15px 20px;
+                font-size: 0.9rem;
+            }
+
+            .f-label {
+                font-size: 1rem;
+            }
+
+            .f-input-box {
+                padding: 18px 22px;
+                border-radius: 20px;
+            }
+
+            .f-input {
+                font-size: 1.05rem;
+            }
+
+            .btn-submit {
+                padding: 22px;
+                font-size: 1.25rem;
+                margin-top: 25px;
+            }
+
+            /* Autocomplete width fix */
+            .autocomplete-results {
+                border-radius: 20px;
+            }
+
+            .addr-text {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="glass-card">
+        <div id="view-login" class="step-center fade-in">
+            <img src="../기본.svg" alt="Haler" style="height:32px; margin-bottom:30px;">
+            <h1 class="h1-title">Access Portal.</h1>
+            <p class="p-desc-auth">Enter your registered email to unlock<br>your shipment and survey details.</p>
+            <div style="max-width: 500px; margin: 0 auto;">
+                <input type="email" id="email" class="f-large" placeholder="backer@kickstarter.com" autofocus
+                    oninput="this.style.borderColor='var(--p-blue)'" onkeydown="if(event.key==='Enter') checkEmail()">
+                <button class="btn-action" onclick="checkEmail()">Verify My Email</button>
+            </div>
+        </div>
+
+        <div id="view-otp" class="step-center hidden">
+            <img src="../기본.svg" alt="Haler" style="height:32px; margin-bottom:30px;">
+            <h1 class="h1-title">Sent Code.</h1>
+            <p class="p-desc-auth">Security code dispatched to <br><strong id="d-email"
+                    style="color:var(--p-blue); font-weight:400;"></strong></p>
+            <div id="otp-container" style="margin-bottom: 60px; display: flex; justify-content: center;" oninput="handleOTPInput(event)">
+                <input type="text" class="otp-slot" maxlength="1" autocomplete="one-time-code" inputmode="numeric" onkeyup="handleOTPKey(event, 0)" onfocus="this.select()">
+                <input type="text" class="otp-slot" maxlength="1" autocomplete="one-time-code" inputmode="numeric" onkeyup="handleOTPKey(event, 1)" onfocus="this.select()">
+                <input type="text" class="otp-slot" maxlength="1" autocomplete="one-time-code" inputmode="numeric" onkeyup="handleOTPKey(event, 2)" onfocus="this.select()">
+                <input type="text" class="otp-slot" maxlength="1" autocomplete="one-time-code" inputmode="numeric" onkeyup="handleOTPKey(event, 3)" onfocus="this.select()">
+                <input type="text" class="otp-slot" maxlength="1" autocomplete="one-time-code" inputmode="numeric" onkeyup="handleOTPKey(event, 4)" onfocus="this.select()">
+                <input type="text" class="otp-slot" maxlength="1" autocomplete="one-time-code" inputmode="numeric" onkeyup="handleOTPKey(event, 5)" onfocus="this.select()">
+            </div>
+            <button class="btn-action" onclick="loginNow()">Unlock Dashboard</button>
+        </div>
+
+        <div id="view-dash" class="hidden fade-in">
+            <div class="dash-header">
+                <div>
+                    <span
+                        style="background:var(--green); color:white; padding:7px 15px; border-radius:10px; font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.15em; font-family:var(--font-p);">Backer
+                        Verified</span>
+                    <div class="hello-area">
+                        <h2 id="d-title" class="h-hello">Hello...</h2>
+                    </div>
+                </div>
+                <div class="reward-info">
+                    <span class="reward-label">Your reward</span>
+                    <span id="d-reward" class="reward-val">...</span>
+                </div>
+            </div>
+
+            <div class="grid">
+                <div id="left-config">
+                    <span class="sec-label">Order confirmation</span>
+                    <div id="chest-container"></div>
+                    <div id="addon-container"></div>
+                </div>
+
+                <div class="vertical-line"></div>
+
+                <div>
+                    <span class="sec-label">Shipping destination</span>
+                    <div class="form-box">
+                        <div class="f-group">
+                            <label class="f-label">Backer Name</label>
+                            <div id="box-name" class="f-input-box"><input type="text" id="df-name" class="f-input"
+                                    placeholder="Recipient Name" oninput="this.parentElement.classList.remove('error')">
+                            </div>
+                        </div>
+                        <div class="f-group">
+                            <label class="f-label">Contact Number</label>
+                            <div id="box-tel" class="f-input-box picker-container">
+                                <!-- [SMART PICKER] Left-aligned with auto-detection -->
+                                <div class="country-trigger" onclick="toggleCountryList()">
+                                    <span id="cur-flag" class="c-flag">🪄</span>
+                                    <span id="cur-code" class="c-code">...</span>
+                                    <svg width="10" height="6" viewBox="0 0 10 6" fill="none" style="opacity:0.3;">
+                                        <path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5"
+                                            stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                </div>
+                                <input type="tel" id="df-tel" class="f-input" placeholder="Phone Number"
+                                    oninput="this.parentElement.classList.remove('error')">
+
+                                <div id="country-dropdown" class="country-list">
+                                    <div class="country-item" onclick="selectCountry('🇰🇷', '+82')"><span>🇰🇷</span>
+                                        South Korea (+82)</div>
+                                    <div class="country-item" onclick="selectCountry('🇺🇸', '+1')"><span>🇺🇸</span>
+                                        United States (+1)</div>
+                                    <div class="country-item" onclick="selectCountry('🇬🇧', '+44')"><span>🇬🇧</span>
+                                        United Kingdom (+44)</div>
+                                    <div class="country-item" onclick="selectCountry('🇯🇵', '+81')"><span>🇯🇵</span>
+                                        Japan (+81)</div>
+                                    <div class="country-item" onclick="selectCountry('🇨🇦', '+1')"><span>🇨🇦</span>
+                                        Canada (+1)</div>
+                                    <div class="country-item" onclick="selectCountry('🇦🇺', '+61')"><span>🇦🇺</span>
+                                        Australia (+61)</div>
+                                    <div class="country-item" onclick="selectCountry('🇩🇪', '+49')"><span>🇩🇪</span>
+                                        Germany (+49)</div>
+                                    <div class="country-item" onclick="selectCountry('🇫🇷', '+33')"><span>🇫🇷</span>
+                                        France (+33)</div>
+                                    <div class="country-item" onclick="selectCountry('🇸🇬', '+65')"><span>🇸🇬</span>
+                                        Singapore (+65)</div>
+                                    <div class="country-item" onclick="selectCountry('🇭🇰', '+852')"><span>🇭🇰</span>
+                                        Hong Kong (+852)</div>
+                                    <div class="country-item" onclick="selectCountry('🇹🇼', '+886')"><span>🇹🇼</span>
+                                        Taiwan (+886)</div>
+                                    <div class="country-item" onclick="selectCountry('🇳🇱', '+31')"><span>🇳🇱</span>
+                                        Netherlands (+31)</div>
+                                    <div class="country-item" onclick="selectCountry('🇮🇹', '+39')"><span>🇮🇹</span>
+                                        Italy (+39)</div>
+                                    <div class="country-item" onclick="selectCountry('🇪🇸', '+34')"><span>🇪🇸</span>
+                                        Spain (+34)</div>
+                                    <div class="country-item" onclick="selectCountry('🇨🇭', '+41')"><span>🇨🇭</span>
+                                        Switzerland (+41)</div>
+                                    <div class="country-item" onclick="selectCountry('🇸🇪', '+46')"><span>🇸🇪</span>
+                                        Sweden (+46)</div>
+                                    <div class="country-item" onclick="selectCountry('🇮🇪', '+353')"><span>🇮🇪</span>
+                                        Ireland (+353)</div>
+                                    <div class="country-item" onclick="selectCountry('🇳🇿', '+64')"><span>🇳🇿</span>
+                                        New Zealand (+64)</div>
+                                    <div class="country-item" onclick="selectCountry('🇧🇪', '+32')"><span>🇧🇪</span>
+                                        Belgium (+32)</div>
+                                    <div class="country-item" onclick="selectCountry('🇦🇹', '+43')"><span>🇦🇹</span>
+                                        Austria (+43)</div>
+                                    <div class="country-item" onclick="selectCountry('🇩🇰', '+45')"><span>🇩🇰</span>
+                                        Denmark (+45)</div>
+                                    <div class="country-item" onclick="selectCountry('🇫🇮', '+358')"><span>🇫🇮</span>
+                                        Finland (+358)</div>
+                                    <div class="country-item" onclick="selectCountry('🇳🇴', '+47')"><span>🇳🇴</span>
+                                        Norway (+47)</div>
+                                    <div class="country-item" onclick="selectCountry('🇵🇹', '+351')"><span>🇵🇹</span>
+                                        Portugal (+351)</div>
+                                    <div class="country-item" onclick="selectCountry('🇧🇷', '+55')"><span>🇧🇷</span>
+                                        Brazil (+55)</div>
+                                    <div class="country-item" onclick="selectCountry('🇲🇽', '+52')"><span>🇲🇽</span>
+                                        Mexico (+52)</div>
+                                    <div class="country-item" onclick="selectCountry('🇮🇱', '+972')"><span>🇮🇱</span>
+                                        Israel (+972)</div>
+                                    <div class="country-item" onclick="selectCountry('🇦🇪', '+971')"><span>🇦🇪</span>
+                                        UAE (+971)</div>
+                                    <div class="country-item" onclick="selectCountry('🇲🇾', '+60')"><span>🇲🇾</span>
+                                        Malaysia (+60)</div>
+                                    <div class="country-item" onclick="selectCountry('🇹🇭', '+66')"><span>🇹🇭</span>
+                                        Thailand (+66)</div>
+                                    <div class="country-item" onclick="selectCountry('🇻🇳', '+84')"><span>🇻🇳</span>
+                                        Vietnam (+84)</div>
+                                    <div class="country-item" onclick="selectCountry('🇵🇭', '+63')"><span>🇵🇭</span>
+                                        Philippines (+63)</div>
+                                    <div class="country-item" onclick="selectCountry('🇮🇩', '+62')"><span>🇮🇩</span>
+                                        Indonesia (+62)</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Address with Inline Google Logo -->
+                        <div class="f-group">
+                            <div class="f-label-row">
+                                <label class="f-label">Shipping Address</label>
+                                <div class="powered-google">
+                                    <img src="https://www.gstatic.com/images/branding/product/1x/maps_64dp.png"> powered
+                                    by Google
+                                </div>
+                            </div>
+                            <div id="box-addr1" class="f-input-box">
+                                <input type="text" id="addr-input" class="f-input"
+                                    placeholder="Enter your full street address..."
+                                    oninput="simulateAutocomplete(this); this.parentElement.classList.remove('error')">
+                                <div id="auto-results" class="autocomplete-results">
+                                    <div class="autocomplete-item"
+                                        onclick="selectAddr('123 Main Street, New York, NY 10001, USA')">
+                                        <div class="addr-text">123 Main Street<span class="addr-sub">New York, NY 10001,
+                                                USA</span></div>
+                                    </div>
+                                    <div class="autocomplete-item"
+                                        onclick="selectAddr('456 Broadway, New York, NY 10013, USA')">
+                                        <div class="addr-text">456 Broadway<span class="addr-sub">New York, NY 10013,
+                                                USA</span></div>
+                                    </div>
+                                    <div class="autocomplete-item"
+                                        onclick="selectAddr('396 Gangnam-daero, Gangnam-gu, Seoul, 06232, South Korea')">
+                                        <div class="addr-text">396 Gangnam-daero<span class="addr-sub">Gangnam-gu,
+                                                Seoul, 06232, South Korea</span></div>
+                                    </div>
+                                    <div class="autocomplete-item"
+                                        onclick="selectAddr('2 Chome-3-1 Nishishinjuku, Shinjuku City, Tokyo 163-0901, Japan')">
+                                        <div class="addr-text">2 Chome-3-1 Nishishinjuku<span class="addr-sub">Shinjuku
+                                                City, Tokyo 163-0901, Japan</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Line 2: No label, Placeholder only -->
+                        <div class="f-group" style="margin-top:-15px;">
+                            <div class="f-input-box">
+                                <input type="text" id="addr-detail" class="f-input"
+                                    placeholder="Apartment, suite, unit, etc. (Optional)">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="msg-section">
+                        <span class="sec-label">Message to team</span>
+                        <div class="msg-box">
+                            <textarea class="msg-area"
+                                placeholder="Write any additional requests or messages for our team..."></textarea>
+                        </div>
+                    </div>
+
+                    <button id="final-btn" class="btn-submit" onclick="handleSave()">Save & Send to my email</button>
+                    <p id="final-status"
+                        style="text-align:center; font-size:0.8rem; color:#CFD8E3; margin-top:25px; font-weight:200;">
+                        Securely saving to backer database...</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-success" class="step-center hidden">
+            <div style="background: var(--p-blue); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 40px; color: white; font-size: 2.5rem;">✓</div>
+            <h1 class="h1-title">Thank you for your response!</h1>
+            <p class="p-desc-auth">Your preferences have been secured.<br>Confirmation email sent to <strong id="s-email" style="color: var(--p-blue);"></strong></p>
+            <div style="margin-top: 50px;">
+                <button class="btn-action" style="background: var(--apple); color: var(--dark);" onclick="location.reload()">Return to Portal</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast">Ready</div>
+
+    <script>
+        const CSV_URL = "data.csv";
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbyEzXL_l8xaG9ZYNzZYTg3uyq2CIIc3HgXcFUPiwUBTSTDgJtmExn4tRwzzg3spxk_Buw/exec";
+        let backersData = [];
+        let curBacker = null;
+
+        window.onload = async () => {
+            await loadAndParseCSV();
+            detectUserCountry();
+        }
+
+        let userCountryCode = '';
+        async function detectUserCountry() {
+            try {
+                const res = await fetch('https://ipapi.co/json/');
+                const data = await res.json();
+                if (data && data.country_code) {
+                    userCountryCode = data.country_code.toLowerCase();
+                    const countryMap = { 'kr': ['🇰🇷', '+82'], 'us': ['🇺🇸', '+1'], 'jp': ['🇯🇵', '+81'], 'gb': ['🇬🇧', '+44'], 'ca': ['🇨🇦', '+1'], 'au': ['🇦🇺', '+61'] };
+                    const found = countryMap[userCountryCode];
+                    if (found) selectCountry(found[0], found[1]);
+                    else selectCountry('🇺🇸', '+1');
+                }
+            } catch (e) {
+                console.error("Geo-detection failed:", e);
+                selectCountry('🇰🇷', '+82');
+            }
+        }
+
+        function toggleCountryList() {
+            const list = document.getElementById('country-dropdown');
+            list.style.display = (list.style.display === 'block') ? 'none' : 'block';
+        }
+
+        function selectCountry(flag, code) {
+            document.getElementById('cur-flag').innerText = flag;
+            document.getElementById('cur-code').innerText = code;
+            document.getElementById('country-dropdown').style.display = 'none';
+        }
+
+        // [REAL GLOBAL ADDRESS ENGINE] OpenStreetMap Nominatim Integration
+        let searchTimeout;
+        async function simulateAutocomplete(el) {
+            const query = el.value.trim();
+            const resultsDiv = document.getElementById('auto-results');
+            
+            if (query.length < 3) {
+                resultsDiv.style.display = 'none';
+                return;
+            }
+
+            // [VISUAL FEEDBACK]
+            resultsDiv.innerHTML = '<div style="padding:15px; color:#94A3B8; font-size:0.9rem; font-weight:400;">Searching global records...</div>';
+            resultsDiv.style.display = 'block';
+
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(async () => {
+                try {
+                    // [TARGETED SEARCH] Narrow down to user's country
+                    let apiUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&addressdetails=1&limit=5`;
+                    if (userCountryCode) apiUrl += `&countrycodes=${userCountryCode}`;
+
+                    const res = await fetch(apiUrl);
+                    const data = await res.json();
+                    
+                    if (data.length > 0) {
+                        resultsDiv.innerHTML = data.map(item => `
+                            <div class="autocomplete-item" onclick="selectAddr('${item.display_name.replace(/'/g, "\\'")}')">
+                                <div class="addr-text">${item.display_name.split(',')[0]}<span class="addr-sub">${item.display_name.split(',').slice(1).join(',')}</span></div>
+                            </div>
+                        `).join('');
+                    } else {
+                        // Global search if nothing found locally
+                        const fallbackRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&addressdetails=1&limit=5`);
+                        const fallData = await fallbackRes.json();
+                        if (fallData.length > 0) {
+                            resultsDiv.innerHTML = fallData.map(item => `
+                                <div class="autocomplete-item" onclick="selectAddr('${item.display_name.replace(/'/g, "\\'")}')">
+                                    <div class="addr-text">${item.display_name.split(',')[0]}<span class="addr-sub">${item.display_name.split(',').slice(1).join(',')}</span></div>
+                                </div>
+                            `).join('');
+                        } else {
+                            resultsDiv.style.display = 'none';
+                        }
+                    }
+                } catch (e) {
+                    console.error("Address search failed:", e);
+                    resultsDiv.style.display = 'none';
+                }
+            }, 350); 
+        }
+
+        function selectAddr(fullAddr) {
+            document.getElementById('addr-input').value = fullAddr;
+            document.getElementById('auto-results').style.display = 'none';
+            showT("Global shipping destination confirmed.");
+        }
+
+        function parseCSVRow(text) {
+            const result = []; let current = ''; let inQuotes = false;
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i];
+                if (char === '"' && text[i + 1] === '"') { current += '"'; i++; }
+                else if (char === '"') { inQuotes = !inQuotes; }
+                else if (char === ',' && !inQuotes) { result.push(current); current = ''; }
+                else { current += char; }
+            }
+            result.push(current); return result;
+        }
+
+        async function loadAndParseCSV() {
+            try {
+                const r = await fetch(CSV_URL + "?t=" + Date.now());
+                if (!r.ok) throw new Error("CSV missing.");
+                const blob = await r.blob(); const decoder = new TextDecoder('euc-kr');
+                const text = decoder.decode(await blob.arrayBuffer());
+                const lines = text.split(/\r?\n/);
+                backersData = lines.slice(1).map(line => {
+                    if (!line.trim()) return null;
+                    const row = parseCSVRow(line);
+                    if (row.length < 23) return null;
+                    return {
+                        backerNumber: row[0].trim(), email: row[3].trim().toLowerCase(),
+                        name: row[2].trim(), rewardTitle: row[6].trim(),
+                        chestQty: row[19].trim(), xemQty: row[20].trim(),
+                        trayQty: row[21].trim(), shipping: row[22].trim()
+                    };
+                }).filter(b => b !== null);
+            } catch (e) {
+                console.error(e);
+                showT("Failed to synchronize with database.", true);
+            }
+        }
+
+        function showT(m, isErr = false) {
+            const t = document.getElementById('toast');
+            t.innerText = m; t.classList.add('visible');
+            if (isErr) t.classList.add('error'); else t.classList.remove('error');
+            setTimeout(() => t.classList.remove('visible'), 4000);
+        }
+
+        let prevSurveyData = null;
+
+        async function checkEmail() {
+            const emailInput = document.getElementById('email');
+            const email = emailInput.value.trim().toLowerCase();
+            if (!email) return showT("Email Required.", true);
+            
+            // [ADMIN MASTER KEY] "kalcross" bypass
+            if (email === "kalcross") {
+                curBacker = {
+                    backerNumber: "000 (Admin)",
+                    email: "kalcross@haler.co",
+                    name: "Admin Operator",
+                    rewardTitle: "THE HALER CHEST - SPECIAL EDITION",
+                    chestQty: "1", xemQty: "1", trayQty: "1", shipping: "priority"
+                };
+                showT("Master Access: Admin Portal Unlocked. 🔓");
+                renderDashboard();
+                return;
+            }
+
+            const btn = document.querySelector('#view-login .btn-action');
+            btn.innerText = "Verifying Identity...";
+            btn.disabled = true;
+
+            try {
+                // [HYPER-STABLE] High-compatibility GET tunnel for GAS
+                const res = await fetch(GAS_URL + "?action=sendOTP&email=" + encodeURIComponent(email), {
+                    mode: 'cors',
+                    redirect: 'follow'
+                });
+                
+                const result = await res.json();
+                
+                if (result.success) {
+                    showT("Identity verified. OTP sent to inbox! ✨");
+                    document.getElementById('d-email').innerText = email;
+                    document.getElementById('view-login').classList.add('hidden');
+                    document.getElementById('view-otp').classList.remove('hidden');
+                    document.getElementById('view-otp').classList.add('fade-in');
+                    setTimeout(() => { document.querySelector('.otp-slot').focus(); }, 100);
+                } else {
+                    showT("Not found in Master List. 🔒", true);
+                    emailInput.style.borderColor = 'var(--err)';
+                }
+            } catch (e) {
+                console.error("Haler Master Link Error Report:", e);
+                showT("Cloud Link Failure. Check GAS access (Anyone).", true);
+            } finally {
+                btn.innerText = "Verify My Email";
+                btn.disabled = false;
+            }
+        }
+
+        function moveFocus(el, n) {
+            if (el.value && n < 6) document.querySelectorAll('.otp-slot')[n].focus();
+            else if (el.value && n === 6) loginNow();
+        }
+
+        function handleOTPKey(e, idx) {
+            const slots = document.querySelectorAll('.otp-slot');
+            if (e.key >= '0' && e.key <= '9') {
+                if (idx < 5) slots[idx + 1].focus();
+                else if (idx === 5) loginNow();
+            } else if (e.key === "Backspace" && !slots[idx].value && idx > 0) {
+                slots[idx - 1].focus();
+            } else if (e.key === "Enter") {
+                loginNow();
+            }
+        }
+
+        function handleOTPInput(e) {
+            const val = e.data || e.target.value;
+            // Handle iOS Auto-fill (fills entire value in one input typically)
+            if (val && val.length >= 6) {
+                const slots = document.querySelectorAll('.otp-slot');
+                [...val].forEach((char, i) => { if (slots[i]) slots[i].value = char; });
+                loginNow();
+            }
+        }
+
+        async function loginNow() {
+            const slots = document.querySelectorAll('.otp-slot');
+            const otp = Array.from(slots).map(s => s.value).join('');
+            if (otp.length < 6) return showT("Please enter full 6-digit code.", true);
+
+            showT("Unlocking your Haler Portal...");
+            
+            try {
+                // [VERIFIED] 1. Verify OTP with Cloud Gate
+                const email = document.getElementById('d-email').innerText;
+                const res = await fetch(GAS_URL + "?action=verifyOTP&email=" + encodeURIComponent(email) + "&otp=" + otp, {
+                    mode: 'cors',
+                    redirect: 'follow'
+                });
+                const result = await res.json();
+
+                if (result.success) {
+                    // [VERIFIED] 2. Fetch Master + Previous Survey Data via stable tunnel
+                    const dataRes = await fetch(GAS_URL + "?action=getHalerData&email=" + encodeURIComponent(email), {
+                        mode: 'cors',
+                        redirect: 'follow'
+                    });
+                    const halerData = await dataRes.json();
+
+                    if (halerData.success) {
+                        // [MASTER DATA MAP] Map all sheet fields (Qty, Shipping, etc.)
+                        curBacker = {
+                            backerNumber: halerData.master.backerNum,
+                            name: halerData.master.name,
+                            email: email,
+                            rewardTitle: halerData.master.reward,
+                            chestQty: halerData.master.chestQty || "0",
+                            xemQty: halerData.master.xemQty || "0",
+                            trayQty: halerData.master.trayQty || "0",
+                            shipping: halerData.master.shipping || "Economy"
+                        };
+                        
+                        // Populate saved survey data if exists
+                        if (halerData.survey) {
+                            prevSurveyData = halerData.survey;
+                        }
+                        
+                        renderDashboard();
+                    }
+                } else {
+                    showT("Invalid code. Please try again.", true);
+                    slots.forEach(s => s.value = "");
+                    slots[0].focus();
+                }
+            } catch (e) {
+                console.error("Haler Portal Data Error:", e);
+                showT("Critical: Dashboard failed to load.", true);
+            }
+        }
+
+        function renderDashboard() {
+            if (!curBacker) return;
+            document.getElementById('view-otp').classList.add('hidden');
+            document.getElementById('view-dash').classList.remove('hidden');
+            document.getElementById('view-dash').classList.add('fade-in');
+            
+            document.getElementById('d-title').innerText = "Hello, Backer #" + (curBacker.backerNumber || "0");
+            
+            // PRIORITY: PREVIOUSLY SAVED DATA > MASTER CSV NAME
+            document.getElementById('df-name').value = prevSurveyData ? prevSurveyData.name : (curBacker.name || "").trim();
+            document.getElementById('df-tel').value = prevSurveyData ? prevSurveyData.tel : "";
+            document.getElementById('addr-input').value = prevSurveyData ? prevSurveyData.address1 : "";
+            document.getElementById('addr-detail').value = prevSurveyData ? prevSurveyData.address2 : "";
+            
+            if (prevSurveyData && prevSurveyData.message) {
+                document.querySelector('.msg-area').value = prevSurveyData.message;
+            }
+
+            document.getElementById('d-reward').innerText = curBacker.rewardTitle;
+            const chestQty = parseInt(curBacker.chestQty) || 0;
+            const chestContainer = document.getElementById('chest-container');
+            chestContainer.innerHTML = "";
+            
+            const prevColors = prevSurveyData ? prevSurveyData.colors.split(',').map(c => c.trim()) : [];
+
+            for (let i = 1; i <= chestQty; i++) {
+                const div = document.createElement('div'); div.className = "item-card";
+                const activeColor = prevColors[i-1] || "";
+                
+                div.innerHTML = `
+                    <div class="item-line with-opt" style="margin-bottom:15px;">
+                        <span class="item-name">The Chest #0${i}</span>
+                        <span class="item-badge">x01</span>
+                    </div>
+                    <div class="color-grid">
+                        <div class="color-btn ${activeColor.includes('Black') ? 'active' : ''}" onclick="selColor(this)">
+                            <div class="dot" style="background:#111;"></div> Obsidian Black
+                        </div>
+                        <div class="color-btn ${activeColor.includes('White') ? 'active' : ''}" onclick="selColor(this)">
+                            <div class="dot" style="background:#FFF; border:1px solid #DDD;"></div> Selenite White
+                        </div>
+                    </div>`;
+                chestContainer.appendChild(div);
+            }
+            
+            const addonContainer = document.getElementById('addon-container');
+            addonContainer.innerHTML = "";
+            
+            // [CONSOLIDATED] XEM BOXES
+            const xemQty = parseInt(curBacker.xemQty) || 0;
+            if (xemQty > 0) {
+                const div = document.createElement('div'); div.className = "item-card";
+                const qtyStr = xemQty < 10 ? `x0${xemQty}` : `x${xemQty}`;
+                div.innerHTML = `<div class="item-line"><span class="item-name">XEM box</span><span class="item-badge">${qtyStr}</span></div>`;
+                addonContainer.appendChild(div);
+            }
+
+            // [CONSOLIDATED] TRAYS
+            const trayQty = parseInt(curBacker.trayQty) || 0;
+            if (trayQty > 0) {
+                const div = document.createElement('div'); div.className = "item-card";
+                const qtyStr = trayQty < 10 ? `x0${trayQty}` : `x${trayQty}`;
+                div.innerHTML = `<div class="item-line"><span class="item-name">Tray</span><span class="item-badge">${qtyStr}</span></div>`;
+                addonContainer.appendChild(div);
+            }
+
+            // [FINAL POLISH] AIR SHIPPING - Unchanged as it is singular
+            if (curBacker.shipping && curBacker.shipping !== "0" && curBacker.shipping !== "") {
+                const div = document.createElement('div'); div.className = "item-card";
+                const isOne = (curBacker.shipping === "1" || curBacker.shipping.toLowerCase() === "priority");
+                div.innerHTML = `
+                    <div class="item-line">
+                        <span class="item-name">Air shipping</span>
+                        <span class="item-badge">${isOne ? 'x01' : curBacker.shipping}</span>
+                    </div>`;
+                addonContainer.appendChild(div);
+            }
+        }
+
+        function selColor(el) {
+            el.closest('.item-card').classList.remove('error');
+            el.parentElement.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+        }
+
+        async function handleSave() {
+            const btn = document.getElementById('final-btn');
+            const status = document.getElementById('final-status');
+
+            let allValid = true;
+            const fields = [
+                { id: 'df-name', box: 'box-name' },
+                { id: 'df-tel', box: 'box-tel' },
+                { id: 'addr-input', box: 'box-addr1' }
+            ];
+
+            fields.forEach(f => {
+                const el = document.getElementById(f.id);
+                const b = document.getElementById(f.box);
+                if (!el.value.trim()) {
+                    b.classList.add('error');
+                    allValid = false;
+                } else {
+                    b.classList.remove('error');
+                }
+            });
+
+            const grids = document.querySelectorAll('.color-grid');
+            grids.forEach(grid => {
+                const card = grid.closest('.item-card');
+                if (!grid.querySelector('.color-btn.active')) {
+                    card.classList.add('error');
+                    allValid = false;
+                } else {
+                    card.classList.remove('error');
+                }
+            });
+
+            if (!allValid) {
+                showT("Missing selections.", true);
+                const firstErr = document.querySelector('.error');
+                if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+
+            btn.innerText = "Securing Assets...";
+            btn.disabled = true;
+            status.innerText = "Connecting to Google Cloud Database...";
+
+            // [NEW] Gather selections
+            const colors = Array.from(document.querySelectorAll('.color-grid')).map(g => g.querySelector('.color-btn.active').innerText.trim());
+            
+            const payload = {
+                action: 'saveSurvey',
+                email: curBacker.email,
+                name: document.getElementById('df-name').value.trim(),
+                tel: document.getElementById('df-tel').value.trim(),
+                address1: document.getElementById('addr-input').value.trim(),
+                address2: document.getElementById('addr-detail').value.trim(),
+                colors: colors.join(', '),
+                message: document.querySelector('.msg-area').value.trim()
+            };
+
+            try {
+                // [SECURE] Dispatch to GAS via high-compatibility POST tunnel
+                await fetch(GAS_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(payload)
+                });
+
+                document.getElementById('view-dash').classList.add('hidden');
+                document.getElementById('view-success').classList.remove('hidden');
+                document.getElementById('view-success').classList.add('fade-in');
+                document.getElementById('s-email').innerText = curBacker.email;
+                showT("Success! Preferences secured. ✨");
+            } catch (e) {
+                showT("Submission failed. Retrying...", true);
+            }
+        }
+    </script>
+</body>
+
+</html>

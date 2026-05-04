@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Haler - Kickstarter Exclusive Landing</title>
+    
+    <!-- SEO & Tags -->
+    <meta name="description" content="Meet Haler - The future of airway hydration. Exclusive Kickstarter campaign now live.">
+    <link rel="icon" type="image/svg+xml" href="../기본.svg">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&family=Outfit:wght@200;400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            /* Legacy Styles from Parent Project */
+            --luminous-white: #FFFFFF;
+            --cyan-white: #e9f6fa; 
+            --pocari-blue: #1C88FF; 
+            --pocari-light: #E6F2FF; 
+            --dark-bg: #111418;
+            --apple-gray: #f2f4f7;
+            --glass-highlight: rgba(255,255,255,0.8);
+            --glass-border: rgba(255,255,255,0.4);
+            
+            --text-primary: #111418;
+            --text-secondary: #4a5d73;
+            --text-tertiary: #A0AEBC;
+
+            --font-heading: 'Outfit', sans-serif;
+            --font-body: 'Poppins', sans-serif;
+
+            --section-padding: 120px 5%;
+        }
+
+        /* Essential Resets */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: var(--font-body);
+            background-color: var(--luminous-white);
+            color: var(--text-primary);
+            font-weight: 300;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Glassmorphism Implementation */
+        .glass {
+            background: linear-gradient(135deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.2) 100%);
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 40px 100px rgba(28, 136, 255, 0.08);
+        }
+
+        /* Layout */
+        .container { max-width: 1200px; margin: 0 auto; }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0; left: 0; width: 100%;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 5%;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.05); /* Ultra minimal initial state */
+            backdrop-filter: blur(0px);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        nav.scrolled {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(30px);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+        .nav-logo { height: 28px; }
+        .nav-logo img { height: 100%; }
+
+        .kickstarter-badge {
+            background: #05ce78; /* Kickstarter Brand Green */
+            color: white;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 4px;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        /* Hero Section */
+        .hero {
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 80px 5%;
+            overflow: hidden;
+            background: radial-gradient(circle at 70% 30%, #f0f7ff 0%, #ffffff 100%);
+        }
+
+        .hero-bg-media {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1;
+            opacity: 0.1; /* Very subtle water droplet effect */
+        }
+        .hero-bg-media video { width: 100%; height: 100%; object-fit: cover; }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            max-width: 900px;
+        }
+
+        .hero-title {
+            font-family: var(--font-heading);
+            font-size: clamp(3.5rem, 8vw, 6.5rem);
+            font-weight: 600;
+            line-height: 0.95;
+            letter-spacing: -0.04em;
+            margin-bottom: 30px;
+            color: var(--text-primary);
+        }
+        .hero-title span { color: var(--pocari-blue); display: block; font-weight: 200; font-style: italic; }
+
+        .hero-p {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto 50px;
+            line-height: 1.5;
+        }
+
+        .cta-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 15px;
+            background: var(--text-primary);
+            color: white;
+            padding: 20px 48px;
+            border-radius: 100px;
+            font-family: var(--font-heading);
+            font-size: 1.2rem;
+            text-decoration: none;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        .cta-btn:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 30px 60px rgba(28, 136, 255, 0.2);
+            background: var(--pocari-blue);
+        }
+
+        /* Product Showcase */
+        .product-reveal {
+            position: relative;
+            z-index: 3;
+            margin-top: -100px; /* Overlap with hero */
+            padding-bottom: 120px;
+        }
+        .product-img {
+            max-width: 800px;
+            width: 90%;
+            margin: 0 auto;
+            display: block;
+            filter: drop-shadow(0 30px 100px rgba(0,0,0,0.1));
+            animation: float 6s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        /* Benefits Grid */
+        .benefits {
+            padding: var(--section-padding);
+            background: var(--apple-gray);
+            border-radius: 80px;
+            margin: 0 2%;
+        }
+        .section-header { text-align: center; margin-bottom: 80px; }
+        .section-header h2 {
+            font-family: var(--font-heading);
+            font-size: 3.5rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+        }
+
+        .benefit-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+        }
+        .benefit-card {
+            padding: 50px;
+            border-radius: 40px;
+            text-align: left;
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .benefit-card:hover { transform: translateY(-10px); }
+        .benefit-card h3 {
+            font-family: var(--font-heading);
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: var(--pocari-blue);
+        }
+        .benefit-card p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        /* Kickstarter Stats Area */
+        .ks-stats {
+            padding: 80px 0;
+            display: flex;
+            justify-content: center;
+            gap: 60px;
+            border-top: 1px solid rgba(0,0,0,0.05);
+            margin-top: 100px;
+        }
+        .stat-item { text-align: center; }
+        .stat-val { font-family: var(--font-heading); font-size: 3rem; font-weight: 600; display: block; color: var(--text-primary); }
+        .stat-label { font-size: 0.9rem; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.1em; }
+
+        /* Pre-Footer CTA */
+        .pre-footer {
+            padding: var(--section-padding);
+            text-align: center;
+            background: linear-gradient(180deg, var(--luminous-white) 0%, var(--pocari-light) 100%);
+        }
+        .pre-footer h2 {
+            font-family: var(--font-heading);
+            font-size: 4.5rem;
+            margin-bottom: 40px;
+            letter-spacing: -0.03em;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .benefit-grid { grid-template-columns: 1fr; }
+            .hero-title { font-size: 4rem; }
+            .pre-footer h2 { font-size: 3rem; }
+        }
+
+        /* Animation Classes */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+    </style>
+</head>
+<body>
+
+    <nav id="navbar">
+        <div class="nav-logo">
+            <img src="../기본.svg" alt="Haler Logo">
+        </div>
+        <div class="kickstarter-badge">Kickstarter Exclusive</div>
+        <a href="#" class="cta-btn" style="padding: 10px 24px; font-size: 0.9rem; box-shadow: none;">Back Now</a>
+    </nav>
+
+    <header class="hero">
+        <div class="hero-bg-media">
+            <video autoplay muted loop playsinline>
+                <source src="../동영상 자료/물방울.mp4" type="video/mp4">
+            </video>
+        </div>
+        
+        <div class="hero-content">
+            <h1 class="hero-title">
+                Airway Care,
+                <span>Finally Mastered.</span>
+            </h1>
+            <p class="hero-p">
+                당신의 호흡을 위한 가장 정교한 에어로졸 기술. <br>
+                킥스타터 한정 혜택으로 지금 바로 헤일러를 만나보세요.
+            </p>
+            <a href="#kickstarter" class="cta-btn">
+                Back The Project
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
+            </a>
+
+            <div class="ks-stats">
+                <div class="stat-item">
+                    <span class="stat-val">$0</span>
+                    <span class="stat-label">Pledged</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-val">0</span>
+                    <span class="stat-label">Backers</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-val">30</span>
+                    <span class="stat-label">Days Left</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="product-reveal container">
+        <img src="../이미지/블리즈압축.png" alt="Bliz Product" class="product-img">
+    </div>
+
+    <section class="benefits container">
+        <div class="section-header reveal">
+            <h2>The Future of Hydration</h2>
+        </div>
+        
+        <div class="benefit-grid">
+            <div class="benefit-card glass reveal">
+                <h3>High-Precision</h3>
+                <p>90% 이상의 유효 입자가 비강과 기도에 정확하게 도달합니다. 기술의 정점이 만드는 깊은 투과력을 경험하세요.</p>
+            </div>
+            <div class="benefit-card glass reveal">
+                <h3>Pure Stream</h3>
+                <p>일반 스프레이와는 차원이 다른 미세한 안개 분사. 자극 없이 부드럽게 점막을 보습하고 보호합니다.</p>
+            </div>
+            <div class="benefit-card glass reveal">
+                <h3>Everday Protection</h3>
+                <p>미세먼지, 건조한 실내, 오염된 공기로부터 당신의 호흡기를 지키는 가장 세련된 방법입니다.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="pre-footer container">
+        <div class="reveal">
+            <h2>Join the Revolution.</h2>
+            <p style="margin-bottom: 50px; font-size: 1.2rem; color: var(--text-secondary);">우리는 호흡의 질을 바꾸려 합니다. 그 첫 여정에 함께해 주세요.</p>
+            <a href="#kickstarter" class="cta-btn">Reserve Your Unit Now</a>
+        </div>
+    </section>
+
+    <footer style="padding: 60px 0; text-align: center; color: var(--text-tertiary); font-size: 0.9rem;">
+        <p>&copy; 2026 Haler Inc. All Rights Reserved. Kickstarter Launch Campaign.</p>
+    </footer>
+
+    <script>
+        // Navbar scroll effect
+        window.addEventListener('scroll', function() {
+            const nav = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                nav.classList.add('scrolled');
+            } else {
+                nav.classList.remove('scrolled');
+            }
+        });
+
+        // Scroll reveal animation
+        const observerOptions = {
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    </script>
+</body>
+</html>
