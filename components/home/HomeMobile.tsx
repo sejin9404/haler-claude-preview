@@ -261,9 +261,9 @@ export default function HomeMobile() {
                 className="relative w-full origin-top flex justify-center"
               >
                 <Image
-                  src="/images/home-structure.webp"
-                  width={1509}
-                  height={6188}
+                  src="/images/home-structure-mobile.webp"
+                  width={750}
+                  height={3075}
                   priority
                   className="w-full h-auto max-none px-6"
                   alt="House"
