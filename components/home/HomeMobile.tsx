@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState, useMemo } from 'react';
 import { motion, useScroll, useTransform, useSpring, AnimatePresence, useMotionValue, animate } from 'framer-motion';
 import Link from 'next/link';
-import Image from 'next/image';
 import HalerQuiz from '@/components/status/HalerQuiz';
 import { useUI } from '@/context/UIContext';
 import { useVeil } from '@/context/VeilContext';
@@ -45,7 +44,6 @@ export default function HomeMobile() {
   const threatsProgress = threatsProgressRaw;
 
   const maskExpansionProgress = useMotionValue(0);
-  const houseScale = 0.9;
   const [zoomTriggered, setZoomTriggered] = useState(false);
   const [isZooming, setIsZooming] = useState(false);
 
@@ -75,7 +73,7 @@ export default function HomeMobile() {
     };
   }, [threatsProgress, setNavHidden]);
 
-  const housePanY = useTransform(threatsProgress, [0.06, 0.81], ["0vh", "-80vh"], { clamp: true });
+  const houseObjectPosition = useTransform(threatsProgress, [0.06, 0.81], ["center 0%", "center 100%"], { clamp: true });
 
   const carouselRawOpacity = useTransform(threatsProgress, [0.6, 0.65], [0, 1]);
   const carouselRawY = useTransform(threatsProgress, [0.6, 0.65], [100, 0]);
@@ -249,33 +247,20 @@ export default function HomeMobile() {
                 more than air.
               </motion.h2>
             </div>
-            <motion.div
-              style={{ y: housePanY, willChange: "transform" }}
-              className="relative w-full flex flex-col items-center z-20"
-            >
-              <motion.div
-                style={{
-                  scale: houseScale,
-                  willChange: "transform"
-                }}
-                className="relative w-full origin-top flex justify-center"
-              >
-                <Image
-                  src="/images/home-structure-mobile.webp"
-                  width={750}
-                  height={3075}
-                  priority
-                  className="w-full h-auto max-none px-6"
-                  alt="House"
-                />
-                <Popup text="Dust & Particles" top="15%" side="right" progress={threatsProgress} trigger={0.09} />
-                <Popup text="Hidden Spores" top="30%" side="left" progress={threatsProgress} trigger={0.13} />
-                <Popup text="Invisible Dander" top="45%" side="right" progress={threatsProgress} trigger={0.17} />
-                <Popup text="Pollens" top="60%" side="left" progress={threatsProgress} trigger={0.21} />
-                <Popup text="Molds" top="75%" side="right" progress={threatsProgress} trigger={0.25} />
-                <Popup text="VOCs" top="90%" side="left" progress={threatsProgress} trigger={0.29} />
-              </motion.div>
-            </motion.div>
+            <div className="relative w-full flex-1 z-20 overflow-hidden">
+              <motion.img
+                src="/images/home-structure-mobile.webp"
+                style={{ objectPosition: houseObjectPosition }}
+                className="w-full h-full object-cover px-6"
+                alt="House"
+              />
+              <Popup text="Dust & Particles" top="15%" side="right" progress={threatsProgress} trigger={0.09} />
+              <Popup text="Hidden Spores" top="30%" side="left" progress={threatsProgress} trigger={0.13} />
+              <Popup text="Invisible Dander" top="45%" side="right" progress={threatsProgress} trigger={0.17} />
+              <Popup text="Pollens" top="60%" side="left" progress={threatsProgress} trigger={0.21} />
+              <Popup text="Molds" top="75%" side="right" progress={threatsProgress} trigger={0.25} />
+              <Popup text="VOCs" top="90%" side="left" progress={threatsProgress} trigger={0.29} />
+            </div>
 
             {/* Fixed Carousel Container */}
             <motion.div
