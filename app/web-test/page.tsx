@@ -222,7 +222,7 @@ export default function HomeWebTest() {
               style={{ y: housePanY, willChange: 'transform' }}
               className="relative w-full max-w-4xl flex flex-col items-center z-20"
             >
-              <div className="relative w-full flex justify-center" style={{ scale: 0.9, transformOrigin: 'top center' }}>
+              <div className="relative w-full flex justify-center" style={{ transform: 'scale(0.9)', transformOrigin: 'top center' }}>
                 <Image
                   src="/images/home-structure.webp"
                   width={1509}
