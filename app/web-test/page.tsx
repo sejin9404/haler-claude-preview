@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, useMemo } from 'react';
-import { motion, useScroll, useTransform, useSpring, AnimatePresence, useMotionValue, animate } from 'framer-motion';
+import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import HalerQuiz from '@/components/status/HalerQuiz';
 import { useUI } from '@/context/UIContext';
@@ -25,32 +25,12 @@ export default function HomeWebTest() {
   };
 
   const threatsRef = useRef<HTMLDivElement>(null);
-  const titleRef = useRef<HTMLDivElement>(null);
-  const blizRef = useRef<HTMLDivElement>(null);
 
-  // ── Everyday Threats: useScroll target for device-accurate progress ──
-  const { scrollYProgress: threatsProgressRaw } = useScroll({
+  // ── Everyday Threats scroll progress ──
+  const { scrollYProgress: threatsProgress } = useScroll({
     target: threatsRef,
     offset: ['start start', 'end end'],
   });
-  const threatsProgress = threatsProgressRaw;
-
-  // ── Mask expansion: one-time animate(), no scroll coupling ──
-  const maskExpansionProgress = useMotionValue(0);
-  const [zoomTriggered, setZoomTriggered] = useState(false);
-
-  useEffect(() => {
-    const unsub = threatsProgressRaw.on('change', (v: number) => {
-      if (v > 0.03 && !zoomTriggered) {
-        setZoomTriggered(true);
-        animate(maskExpansionProgress, 1, {
-          duration: 0.7,
-          ease: [0.22, 1, 0.36, 1],
-        });
-      }
-    });
-    return () => unsub();
-  }, [threatsProgressRaw, zoomTriggered, maskExpansionProgress]);
 
   // ── Nav hide ──
   useEffect(() => {
@@ -63,7 +43,7 @@ export default function HomeWebTest() {
     };
   }, [threatsProgress, setNavHidden]);
 
-  // ── House pan: transform only, no width/height ──
+  // ── House pan ──
   const housePanY = useTransform(threatsProgress, [0.06, 0.81], ['0%', '-160%'], { clamp: true });
 
   // ── Carousel ──
@@ -71,22 +51,22 @@ export default function HomeWebTest() {
   const carouselY = useTransform(threatsProgress, [0.6, 0.68], [80, 0]);
   const carouselScale = useTransform(threatsProgress, [0.6, 0.68], [0.88, 1]);
 
-  // ── Mask: scale instead of width/height → no reflow ──
-  const maskScale = useTransform(maskExpansionProgress, [0, 1], [0.82, 1]);
-  const maskRadius = useTransform(maskExpansionProgress, [0, 1], [80, 0]);
+  // ── Mask: driven directly by scroll ──
+  const maskScale = useTransform(threatsProgress, [0, 0.06], [0.82, 1], { clamp: true });
+  const maskRadius = useTransform(threatsProgress, [0, 0.06], [80, 0], { clamp: true });
 
-  // ── Background layers: opacity only → no repaint ──
-  const sectionDarkOpacity = useTransform(threatsProgressRaw, [0.88, 0.98], [0, 1]);
-  const lightLayerOpacity = useTransform(maskExpansionProgress, [0, 1], [1, 0]);
-  const darkLayerOpacity = useTransform(maskExpansionProgress, [0, 1], [0, 1]);
-  const titleTextColor = useTransform(maskExpansionProgress, [0, 0.5], ['#111111', '#ffffff']);
+  // ── Background layers ──
+  const sectionDarkOpacity = useTransform(threatsProgress, [0.88, 0.98], [0, 1]);
+  const lightLayerOpacity = useTransform(threatsProgress, [0, 0.06], [1, 0], { clamp: true });
+  const darkLayerOpacity = useTransform(threatsProgress, [0, 0.06], [0, 1], { clamp: true });
+  const titleTextColor = useTransform(threatsProgress, [0, 0.04], ['#111111', '#ffffff'], { clamp: true });
 
   // ── Breath Balance ──
   const balanceItems = useMemo(() => ['Soothing Voice', 'Instant Hydration', 'Delicate Relief', 'Active Refresh'], []);
   const [balanceIndex, setBalanceIndex] = useState(0);
   useEffect(() => {
-    const t = setInterval(() => setBalanceIndex((p) => p + 1), 3500);
-    return () => clearInterval(t);
+    const timer = setInterval(() => setBalanceIndex((p) => p + 1), 3500);
+    return () => clearInterval(timer);
   }, []);
 
   // ── Anatomy ──
@@ -96,16 +76,6 @@ export default function HomeWebTest() {
     { id: 'pharynx', title: 'Pharynx', desc: 'The crossroads of your airway. Where air, comfort, and daily vocal demand all meet. One of the most overlooked spots to keep hydrated.', pos: { top: '47%', left: '53%' } },
     { id: 'larynx', title: 'Larynx', desc: 'Where your voice lives. The lowest point of your upper airway — and the one voice professionals feel first when the air around them is dry.', pos: { top: '60%', left: '56%' } },
   ];
-
-  // ── Bliz section ──
-  const { scrollYProgress: blizProgressRaw } = useScroll({ target: blizRef, offset: ['start start', 'end end'] });
-  const blizProgress = useSpring(blizProgressRaw, { stiffness: 50, damping: 40 });
-  const blizTextOpacity = useTransform(blizProgress, [0.1, 0.4], [1, 0]);
-  const blizTextScale = useTransform(blizProgress, [0.1, 0.4], [1, 1.1]);
-  const blizMainScale = useTransform(blizProgress, [0.1, 0.8], [1.15, 0.55]);
-  const blizMainY = useTransform(blizProgress, [0.1, 0.8], [0, -80]);
-  const blizFinalOpacity = useTransform(blizProgress, [0.7, 0.9], [0, 1]);
-  const blizFinalY = useTransform(blizProgress, [0.7, 0.9], [40, 0]);
 
   useEffect(() => {
     const timer = setTimeout(() => setIsReady(true), 100);
