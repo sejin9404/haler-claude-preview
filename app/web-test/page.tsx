@@ -25,6 +25,7 @@ export default function HomeWebTest() {
   };
 
   const threatsRef = useRef<HTMLDivElement>(null);
+  const titleRef = useRef<HTMLDivElement>(null);
 
   // ── Everyday Threats scroll progress ──
   const { scrollYProgress: threatsProgress } = useScroll({
