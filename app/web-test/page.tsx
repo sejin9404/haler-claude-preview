@@ -210,9 +210,8 @@ export default function HomeWebTest() {
             {/* Title */}
             <div className="text-center pt-20 pb-8 px-8 z-10 relative" ref={titleRef}>
               <motion.h2
-                style={{ color: titleTextColor }}
+                style={{ color: titleTextColor, fontSize: 'clamp(40px, 5.5vw, 88px)', lineHeight: '1.05' }}
                 className="font-light leading-tight"
-                style={{ fontSize: 'clamp(40px, 5.5vw, 88px)', lineHeight: '1.05' } as React.CSSProperties}
               >
                 You breathe in<br />more than air.
               </motion.h2>
