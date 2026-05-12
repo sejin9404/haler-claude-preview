@@ -27,11 +27,24 @@ export default function HomeWebTest() {
   const threatsRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLDivElement>(null);
 
-  // ── Everyday Threats scroll progress ──
-  const { scrollYProgress: threatsProgress } = useScroll({
-    target: threatsRef,
-    offset: ['start start', 'end end'],
-  });
+  // ── Everyday Threats: window scroll + manual offset (HomeMobile 패턴) ──
+  const { scrollY } = useScroll();
+  const [threatsOffset, setThreatsOffset] = useState(0);
+  const threatsHeight = 4500;
+
+  useEffect(() => {
+    if (threatsRef.current && isReady) {
+      const rect = threatsRef.current.getBoundingClientRect();
+      setThreatsOffset(rect.top + window.scrollY);
+    }
+  }, [isReady]);
+
+  const threatsProgress = useTransform(
+    scrollY,
+    [threatsOffset, threatsOffset + threatsHeight - 800],
+    [0, 1],
+    { clamp: true }
+  );
 
   // ── Nav hide ──
   useEffect(() => {
