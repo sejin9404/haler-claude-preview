@@ -528,9 +528,9 @@ function Popup({ text, top, side = 'center', progress, trigger }: { text: string
         right: side === 'right' ? '40px' : 'auto',
         x: side === 'center' ? '-50%' : '0%',
         position: 'absolute',
+        fontSize: 'clamp(14px, 1.2vw, 20px)',
       }}
       className="bg-black/55 border border-white/10 rounded-full px-10 py-5 font-bold text-white z-[999] whitespace-nowrap backdrop-blur-xl shadow-2xl"
-      style={{ fontSize: 'clamp(14px, 1.2vw, 20px)' } as React.CSSProperties}
     >
       <div className="flex items-center gap-4">
         <div className="w-4 h-4 bg-red-500 rounded-full shadow-[0_0_20px_rgba(239,68,68,0.8)] animate-pulse flex-shrink-0" />
