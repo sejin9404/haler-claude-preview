@@ -257,7 +257,7 @@ export default function SubscribeConfigurator() {
         </div>
       </header>
 
-      <main className="max-w-3xl mx-auto px-5 space-y-6">
+      <main className="max-w-3xl mx-auto px-5 space-y-14">
         {/* ── 1. PLAN ── */}
         <Section index={1} title="Choose your plan" caption="How much hydration fits your life?">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -326,7 +326,6 @@ export default function SubscribeConfigurator() {
           index={2}
           title="Fill your box"
           caption={`Tap a slot, then pick a flavor · ${filledCount}/${boxCount} filled`}
-          className="!mt-14"
         >
           {/* 슬롯 트레이 — 플랜 박스 수에 맞춰 가로폭 꽉 채우는 그리드, 고정 높이 */}
           <motion.div
