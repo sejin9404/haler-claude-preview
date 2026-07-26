@@ -121,6 +121,10 @@ export const themes = [
   }
 ];
 
+// 기본(디폴트) 플레이버 — 빈 슬롯 대신 채워지고, 다른 맛을 고르면 대체된다.
+export const AQUA_FLAVOR = { id: 'aqua', name: 'Aqua', tag: 'Pure', image: '', isDefault: true };
+export const AQUA_ID = 'aqua';
+
 export { SUBSCRIPTION_PLANS as plans, BENEFIT_PILLS as benefitPills } from '@/constants/plans';
 
 export const getPlanLimit = (selectedPlan: string | null) => {

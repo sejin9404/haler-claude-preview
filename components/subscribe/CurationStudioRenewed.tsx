@@ -13,7 +13,7 @@
 import React, { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
-import { themes } from '@/app/pass/passData';
+import { themes, AQUA_FLAVOR, AQUA_ID } from '@/app/pass/passData';
 
 type Slot = { themeId: string | null; flavorId: string | null };
 
@@ -28,28 +28,33 @@ interface Props {
   onClear: () => void;
 }
 
-const findFlavor = (flavorId: string) =>
-  themes.flatMap((t) => t.flavors).find((f) => f.id === flavorId) ?? null;
+const findFlavor = (flavorId: string): { id: string; name: string; tag: string; image: string } | null =>
+  flavorId === AQUA_ID
+    ? (AQUA_FLAVOR as { id: string; name: string; tag: string; image: string })
+    : themes.flatMap((t) => t.flavors).find((f) => f.id === flavorId) ?? null;
+
+const isDefaultSlot = (s: Slot) => !s.flavorId || s.flavorId === AQUA_ID;
 
 export default function CurationStudioRenewed({
   open, onClose, boxCount, slots, width, onAdd, onRemoveSlot, onClear,
 }: Props) {
   const [activeTheme, setActiveTheme] = useState(0); // 0-4: themes, 5: Show All
 
-  // slots → cart(수량 맵) 파생
+  // slots → cart(수량 맵) 파생 — 기본값 Aqua는 세지 않음
   const cart = useMemo(() => {
     const c: Record<string, number> = {};
     slots.forEach((s) => {
-      if (s.flavorId) c[s.flavorId] = (c[s.flavorId] || 0) + 1;
+      if (s.flavorId && s.flavorId !== AQUA_ID) c[s.flavorId] = (c[s.flavorId] || 0) + 1;
     });
     return c;
   }, [slots]);
 
-  const total = slots.filter((s) => s.flavorId).length;
-  const isFull = total >= boxCount;
+  const customized = slots.filter((s) => s.flavorId && s.flavorId !== AQUA_ID).length;
+  const allCustomized = customized >= boxCount;
+  const hasSlotToFill = slots.some(isDefaultSlot); // 대체할 기본(Aqua) 슬롯이 남아있나
 
   const add = (flavorId: string) => {
-    if (isFull) return;
+    if (!hasSlotToFill) return;
     onAdd(flavorId);
   };
 
@@ -251,7 +256,7 @@ export default function CurationStudioRenewed({
                           whileTap={{ scale: 0.98 }}
                           transition={{ duration: 0.4, ease: [0.32, 0.72, 0, 1] }}
                           className={`relative aspect-[4/5] rounded-[24px] overflow-hidden cursor-pointer shadow-[0_16px_40px_rgba(28,136,255,0.2)] border-[5px] ${
-                            isFull && !inCart ? 'opacity-50' : ''
+                            !hasSlotToFill && !inCart ? 'opacity-50' : ''
                           }`}
                           onClick={() => add(flavor.id)}
                         >
@@ -287,55 +292,66 @@ export default function CurationStudioRenewed({
             {/* BASKET — 담긴 플레이버 카드(이름 포함) 그대로 + 카운터 겸 Clear All */}
             <div className="absolute bottom-6 inset-x-0 px-8 z-50">
               <div className="w-full max-w-[960px] mx-auto bg-blue-50/85 backdrop-blur-3xl border border-white rounded-[32px] shadow-[0_20px_50px_rgba(28,136,255,0.25)] p-4">
-                {/* 선택된 플레이버 카드만 — 중앙정렬, 개수에 따라 양옆 여백 자연스럽게 */}
+                {/* 담긴 플레이버 카드 (기본값 Aqua 포함) — boxCount 기준 고정 폭 */}
                 <div className="flex flex-nowrap justify-center items-center gap-3 mb-3 min-h-[150px]">
-                  {total === 0 ? (
-                    <span className="w-full text-center text-sm text-slate-400">Pick flavors above to fill your box.</span>
-                  ) : (
-                    <AnimatePresence mode="popLayout" initial={false}>
-                      {slots.map((s, i) => {
-                        const flavor = s.flavorId ? findFlavor(s.flavorId) : null;
-                        if (!flavor) return null;
-                        return (
-                          <motion.div
-                            key={i}
-                            layout
-                            initial={{ opacity: 0, scale: 0.85 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.85 }}
-                            transition={{ type: 'spring', stiffness: 280, damping: 30 }}
-                            onClick={() => onRemoveSlot(i)}
-                            // 6개(boxCount) 기준 고정 폭 → 다 채우면 꽉 차고, 적으면 같은 크기로 가운데 정렬
-                            style={{ width: `calc((100% - ${(boxCount - 1) * 12}px) / ${boxCount})` }}
-                            className="relative shrink-0 aspect-[4/5] rounded-[18px] overflow-hidden cursor-pointer shadow-[0_10px_24px_rgba(28,136,255,0.22)]"
-                          >
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={flavor.image} className="absolute inset-0 w-full h-full object-cover" alt={flavor.name} />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                            <div className="absolute bottom-0 inset-x-0 p-2.5">
-                              <h4 className="text-xs font-medium text-white truncate">{flavor.name}</h4>
-                              <span className="text-[8px] text-white/50 uppercase tracking-widest">{flavor.tag}</span>
-                            </div>
-                          </motion.div>
-                        );
-                      })}
-                    </AnimatePresence>
-                  )}
+                  <AnimatePresence mode="popLayout" initial={false}>
+                    {slots.map((s, i) => {
+                      const flavor = s.flavorId ? findFlavor(s.flavorId) : null;
+                      if (!flavor) return null;
+                      const isAqua = flavor.id === AQUA_ID;
+                      return (
+                        <motion.div
+                          key={i}
+                          layout
+                          initial={{ opacity: 0, scale: 0.85 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.85 }}
+                          transition={{ type: 'spring', stiffness: 280, damping: 30 }}
+                          onClick={() => !isAqua && onRemoveSlot(i)}
+                          style={{ width: `calc((100% - ${(boxCount - 1) * 12}px) / ${boxCount})` }}
+                          className={`relative shrink-0 aspect-[4/5] rounded-[18px] overflow-hidden shadow-[0_10px_24px_rgba(28,136,255,0.22)] ${
+                            isAqua ? '' : 'cursor-pointer'
+                          }`}
+                        >
+                          {isAqua ? (
+                            <>
+                              <div className="absolute inset-0 bg-gradient-to-br from-[#DCEEFF] via-[#A9D6FF] to-[#7BC0FF]" />
+                              <div className="absolute inset-0 bg-[radial-gradient(circle_at_32%_26%,rgba(255,255,255,0.65),transparent_46%)]" />
+                              <div className="absolute bottom-0 inset-x-0 p-2.5">
+                                <h4 className="text-xs font-semibold text-[#0B5CAB] truncate">{flavor.name}</h4>
+                                <span className="text-[8px] text-[#0B5CAB]/60 uppercase tracking-widest">{flavor.tag}</span>
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src={flavor.image} className="absolute inset-0 w-full h-full object-cover" alt={flavor.name} />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                              <div className="absolute bottom-0 inset-x-0 p-2.5">
+                                <h4 className="text-xs font-medium text-white truncate">{flavor.name}</h4>
+                                <span className="text-[8px] text-white/50 uppercase tracking-widest">{flavor.tag}</span>
+                              </div>
+                            </>
+                          )}
+                        </motion.div>
+                      );
+                    })}
+                  </AnimatePresence>
                 </div>
 
-                {/* 카운터 겸 Clear All (가로 꽉) */}
+                {/* 카운터 겸 Clear All (가로 꽉) — 다 커스텀하면 Clear all(→ Aqua로 리셋) */}
                 <button
-                  disabled={!isFull}
-                  onClick={() => isFull && onClear()}
+                  disabled={!allCustomized}
+                  onClick={() => allCustomized && onClear()}
                   className={`w-full h-12 rounded-full font-bold text-sm transition-all duration-300 ${
-                    isFull
+                    allCustomized
                       ? 'bg-[#1C88FF] text-white hover:bg-blue-600 cursor-pointer'
                       : 'bg-white text-slate-400 cursor-default'
                   }`}
                 >
-                  {isFull
+                  {allCustomized
                     ? 'Clear all'
-                    : `Pick ${boxCount - total} flavor${boxCount - total > 1 ? 's' : ''} more!`}
+                    : `Pick ${boxCount - customized} flavor${boxCount - customized > 1 ? 's' : ''} more!`}
                 </button>
               </div>
             </div>

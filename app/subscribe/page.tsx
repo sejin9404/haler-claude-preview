@@ -20,7 +20,7 @@ import {
   Package, ChevronRight,
 } from 'lucide-react';
 import { SUBSCRIPTION_PLANS, PLAN_LIMITS } from '@/constants/plans';
-import { themes } from '@/app/pass/passData';
+import { themes, AQUA_FLAVOR, AQUA_ID } from '@/app/pass/passData';
 import CurationStudioRenewed from '@/components/subscribe/CurationStudioRenewed';
 
 // 맛 선택 가능한 테마만 (innoscent 등 flavors 없는 건 제외)
@@ -40,7 +40,7 @@ const deliveryCredit = (months: number) => Math.max(0, (months - 1) * CREDIT_PER
 const CREDIT_BALANCE = 12.0;
 
 // 마지막 선택 저장 키 (재방문 시 복원)
-const STORAGE_KEY = 'haler.subscribe.config.v1';
+const STORAGE_KEY = 'haler.subscribe.config.v2';
 
 // 공통 부드러운 전환 (블록 확장/재배치)
 const SPRING = { type: 'spring', stiffness: 280, damping: 30 } as const;
@@ -54,6 +54,10 @@ const swap = {
 
 type Slot = { themeId: string | null; flavorId: string | null };
 
+// 기본 슬롯 = Aqua (빈칸 대신). 다른 맛을 고르면 이 자리를 대체한다.
+const aquaSlot = (): Slot => ({ themeId: AQUA_ID, flavorId: AQUA_ID });
+const isDefaultSlot = (s: Slot) => !s.flavorId || s.flavorId === AQUA_ID;
+
 const money = (n: number) => `$${n.toFixed(0)}`;
 
 export default function SubscribeConfigurator() {
@@ -63,7 +67,7 @@ export default function SubscribeConfigurator() {
 
   // 슬롯: 플랜 박스 수에 맞춰 관리
   const [slots, setSlots] = useState<Slot[]>(() =>
-    Array.from({ length: 3 }, () => ({ themeId: null, flavorId: null }))
+    Array.from({ length: 3 }, () => aquaSlot())
   );
   const [activeSlot, setActiveSlot] = useState(0);
   const [activeTheme, setActiveTheme] = useState(FLAVOR_THEMES[0].id);
@@ -116,7 +120,7 @@ export default function SubscribeConfigurator() {
   React.useEffect(() => {
     setSlots((prev) => {
       const next = prev.slice(0, boxCount);
-      while (next.length < boxCount) next.push({ themeId: null, flavorId: null });
+      while (next.length < boxCount) next.push(aquaSlot());
       return next;
     });
     setActiveSlot((s) => Math.min(s, boxCount - 1));
@@ -145,12 +149,12 @@ export default function SubscribeConfigurator() {
       next[activeSlot] = { themeId, flavorId };
       return next;
     });
-    // 다음 빈 슬롯으로 자동 이동
+    // 다음 기본(Aqua) 슬롯으로 자동 이동
     setActiveSlot((cur) => {
-      const after = slots.findIndex((s, i) => i > cur && !s.flavorId);
+      const after = slots.findIndex((s, i) => i > cur && isDefaultSlot(s));
       if (after !== -1) return after;
-      const anyEmpty = slots.findIndex((s, i) => i !== cur && !s.flavorId);
-      return anyEmpty !== -1 ? anyEmpty : cur;
+      const anyDefault = slots.findIndex((s, i) => i !== cur && isDefaultSlot(s));
+      return anyDefault !== -1 ? anyDefault : cur;
     });
   };
 
@@ -166,26 +170,28 @@ export default function SubscribeConfigurator() {
   }, []);
   const themeOfFlavor = (flavorId: string) =>
     themes.find((t) => t.flavors.some((f) => f.id === flavorId)) ?? null;
+  // 다른 맛을 고르면 첫 기본(Aqua) 슬롯을 대체
   const addFlavorToFirstEmpty = (flavorId: string) => {
     setSlots((prev) => {
-      const idx = prev.findIndex((s) => !s.flavorId);
+      const idx = prev.findIndex((s) => isDefaultSlot(s));
       if (idx === -1) return prev;
       const next = [...prev];
       next[idx] = { themeId: themeOfFlavor(flavorId)?.id ?? null, flavorId };
       return next;
     });
   };
+  // 제거 = 기본(Aqua)으로 되돌림
   const clearSlot = (index: number) => {
     setSlots((prev) => {
       const next = [...prev];
-      next[index] = { themeId: null, flavorId: null };
+      next[index] = aquaSlot();
       return next;
     });
   };
-  const clearAllSlots = () =>
-    setSlots((prev) => prev.map(() => ({ themeId: null, flavorId: null })));
+  const clearAllSlots = () => setSlots((prev) => prev.map(() => aquaSlot()));
 
   const flavorById = (themeId: string | null, flavorId: string | null) => {
+    if (flavorId === AQUA_ID) return AQUA_FLAVOR;
     if (!themeId || !flavorId) return null;
     const t = FLAVOR_THEMES.find((x) => x.id === themeId);
     return t?.flavors.find((f) => f.id === flavorId) ?? null;
@@ -362,12 +368,26 @@ export default function SubscribeConfigurator() {
                         transition={{ duration: 0.28, ease: [0.32, 0.72, 0, 1] }}
                         className="absolute inset-0"
                       >
-                        <Image src={f.image} alt={f.name} fill sizes="200px" className="object-cover" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                        <div className="absolute bottom-0 inset-x-0 p-3">
-                          <div className="text-sm font-medium text-white truncate">{f.name}</div>
-                          <div className="text-[9px] text-white/50 uppercase tracking-widest">{f.tag}</div>
-                        </div>
+                        {f.id === AQUA_ID ? (
+                          // 기본값 Aqua — 물/물방울 느낌의 푸른 배경
+                          <>
+                            <div className="absolute inset-0 bg-gradient-to-br from-[#DCEEFF] via-[#A9D6FF] to-[#7BC0FF]" />
+                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_32%_26%,rgba(255,255,255,0.65),transparent_46%)]" />
+                            <div className="absolute bottom-0 inset-x-0 p-3">
+                              <div className="text-sm font-semibold text-[#0B5CAB] truncate">{f.name}</div>
+                              <div className="text-[9px] text-[#0B5CAB]/60 uppercase tracking-widest">{f.tag}</div>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <Image src={f.image} alt={f.name} fill sizes="200px" className="object-cover" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                            <div className="absolute bottom-0 inset-x-0 p-3">
+                              <div className="text-sm font-medium text-white truncate">{f.name}</div>
+                              <div className="text-[9px] text-white/50 uppercase tracking-widest">{f.tag}</div>
+                            </div>
+                          </>
+                        )}
                       </motion.div>
                     ) : (
                       <motion.div
