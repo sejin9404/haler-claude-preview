@@ -348,12 +348,8 @@ export default function SubscribeConfigurator() {
                   transition={SPRING}
                   onClick={() => setActiveSlot(i)}
                   whileTap={{ scale: 0.97 }}
-                  className={`relative w-full h-36 rounded-[24px] overflow-hidden border-[5px] transition-colors ${
-                    f
-                      ? 'border-pocari-blue shadow-[0_16px_40px_rgba(28,136,255,0.2)]'
-                      : active
-                        ? 'border-pocari-blue bg-slate-50'
-                        : 'border-transparent bg-slate-50'
+                  className={`relative w-full h-36 rounded-[24px] overflow-hidden transition-shadow ${
+                    f ? 'shadow-[0_16px_40px_rgba(28,136,255,0.2)]' : 'bg-slate-50'
                   }`}
                 >
                   {f ? (
