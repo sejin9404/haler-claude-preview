@@ -14,6 +14,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import {
   Check, Sparkles, Truck, Coins, ArrowRight, Lock,
   Package, PartyPopper, ChevronRight,
@@ -38,6 +39,7 @@ type Slot = { themeId: string | null; flavorId: string | null };
 const money = (n: number) => `$${n.toFixed(0)}`;
 
 export default function SubscribeConfigurator() {
+  const router = useRouter();
   const [planId, setPlanId] = useState<string>('essential');
   const boxCount = PLAN_LIMITS[planId as keyof typeof PLAN_LIMITS] ?? 3;
 
@@ -102,25 +104,17 @@ export default function SubscribeConfigurator() {
   const currentTheme = FLAVOR_THEMES.find((t) => t.id === activeTheme)!;
 
   const handleCheckout = () => {
-    const summary = {
+    // 실제 구현: Shopify Storefront cart(selling plan) 생성 후 checkout 리다이렉트.
+    // 지금은 목업 결제 화면(/checkout)으로 선택값을 넘겨 핸드오프를 시뮬레이션.
+    const config = {
       planId,
-      slots: slots.map((s) => ({ theme: s.themeId, flavor: s.flavorId })),
-      frequency,
-      useCredits,
-      creditApplied,
+      slots: slots.map((s) => ({ t: s.themeId, f: s.flavorId })),
+      freq: frequency,
+      credit: creditApplied,
       total,
     };
-    // 실제 구현: Shopify Storefront cart(selling plan) 생성 후 checkout 리다이렉트
-    // eslint-disable-next-line no-console
-    console.log('[Handoff → Shopify Payments]', summary);
-    alert(
-      `[Mockup]\nMoving to secure Shopify checkout…\n\n` +
-        `Plan: ${plan.title} (${boxCount} boxes)\n` +
-        `Flavors filled: ${filledCount}/${boxCount}\n` +
-        `Delivery: ${FREQUENCIES.find((f) => f.id === frequency)?.label}\n` +
-        `Credits used: ${money(creditApplied)}\n` +
-        `Total today: ${money(total)}`
-    );
+    const c = encodeURIComponent(JSON.stringify(config));
+    router.push(`/checkout?c=${c}`);
   };
 
   return (
