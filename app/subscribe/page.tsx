@@ -371,7 +371,11 @@ export default function SubscribeConfigurator() {
         </Section>
 
         {/* ── 3. DELIVERY RHYTHM ── */}
-        <Section index={3} title="Delivery rhythm" caption="Wait a little longer, earn more credit.">
+        <Section
+          index={3}
+          title="Delivery rhythm"
+          caption={`You'll earn +${money(earnCredit)} credit every delivery. · Pause anytime — no cancellation needed.`}
+        >
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {FREQUENCIES.map((fq) => {
               const selected = fq.id === frequency;
@@ -385,17 +389,12 @@ export default function SubscribeConfigurator() {
                     selected ? 'border-pocari-blue bg-white' : 'border-transparent bg-white/70'
                   }`}
                 >
-                  {/* 우상단 뱃지 */}
-                  {fq.badge && (
-                    <span className="absolute top-2.5 right-2.5 text-[8px] font-bold tracking-wider uppercase text-pocari-blue bg-pocari-light px-1.5 py-0.5 rounded-full">
-                      {fq.badge}
-                    </span>
-                  )}
-                  <Truck className={`w-5 h-5 ${selected ? 'text-pocari-blue' : 'text-slate-300'}`} />
-                  <div className="mt-3 flex items-center justify-between gap-1">
-                    <span className="text-sm font-bold whitespace-nowrap">{fq.label}</span>
+                  {/* 우상단: 크레딧 보상 뱃지 (프로모 뱃지 자리) */}
+                  <div className="absolute top-2.5 right-2.5">
                     <CreditTag amount={credit} />
                   </div>
+                  <Truck className={`w-5 h-5 ${selected ? 'text-pocari-blue' : 'text-slate-300'}`} />
+                  <div className="mt-3 text-sm font-bold whitespace-nowrap">{fq.label}</div>
                   {selected && (
                     <Check className="absolute bottom-3 right-3 w-4 h-4 text-pocari-blue stroke-[3]" />
                   )}
@@ -410,47 +409,35 @@ export default function SubscribeConfigurator() {
                 frequency === 'custom' ? 'border-pocari-blue bg-white' : 'border-transparent bg-white/70'
               }`}
             >
-              <span className="absolute top-2.5 right-2.5 text-[8px] font-bold tracking-wider uppercase text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-full">
-                Custom
-              </span>
-              <Truck className={`w-5 h-5 ${frequency === 'custom' ? 'text-pocari-blue' : 'text-slate-300'}`} />
-              <div className="mt-3 flex items-center justify-between gap-1">
-                <span className="text-sm font-bold flex items-center gap-1 whitespace-nowrap">
-                  Every
-                  <input
-                    type="number"
-                    min={1}
-                    max={12}
-                    value={customMonths}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setFrequency('custom');
-                    }}
-                    onChange={(e) => {
-                      const v = Math.max(1, Math.min(12, parseInt(e.target.value || '1', 10)));
-                      setCustomMonths(v);
-                      setFrequency('custom');
-                    }}
-                    className="w-10 text-center rounded-lg border border-slate-200 py-0.5 text-pocari-blue font-bold outline-none focus:border-pocari-blue"
-                  />
-                  mo
-                </span>
+              <div className="absolute top-2.5 right-2.5">
                 <CreditTag amount={deliveryCredit(Math.max(1, customMonths || 1))} />
+              </div>
+              <Truck className={`w-5 h-5 ${frequency === 'custom' ? 'text-pocari-blue' : 'text-slate-300'}`} />
+              <div className="mt-3 text-sm font-bold flex items-center gap-1 whitespace-nowrap">
+                Every
+                <input
+                  type="number"
+                  min={1}
+                  max={12}
+                  value={customMonths}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setFrequency('custom');
+                  }}
+                  onChange={(e) => {
+                    const v = Math.max(1, Math.min(12, parseInt(e.target.value || '1', 10)));
+                    setCustomMonths(v);
+                    setFrequency('custom');
+                  }}
+                  className="w-10 text-center rounded-lg border border-slate-200 py-0.5 text-pocari-blue font-bold outline-none focus:border-pocari-blue"
+                />
+                mo
               </div>
               {frequency === 'custom' && (
                 <Check className="absolute bottom-3 right-3 w-4 h-4 text-pocari-blue stroke-[3]" />
               )}
             </div>
           </div>
-
-          <p className="mt-3 text-[11px] text-slate-400 flex items-center gap-1.5">
-            <Coins className="w-3 h-3 text-pocari-blue" />
-            {earnCredit > 0
-              ? `You'll earn +${money(earnCredit)} credit every delivery.`
-              : 'Space out deliveries to start earning credit.'}
-            <span className="text-slate-300">·</span>
-            Pause anytime — no cancellation needed.
-          </p>
         </Section>
 
         {/* ── 4. CREDITS (우리만의 데이터) ── */}
@@ -588,7 +575,7 @@ function Section({
           {index}
         </span>
         <h2 className="text-base font-bold leading-none">{title}</h2>
-        {caption && <p className="text-[11px] text-slate-400 leading-none">{caption}</p>}
+        {caption && <p className="text-[11px] text-pocari-blue font-medium leading-tight">{caption}</p>}
       </div>
       {children}
     </motion.section>
@@ -633,15 +620,15 @@ function SegDivider() {
   return <ChevronRight className="w-3.5 h-3.5 text-slate-300 shrink-0" />;
 }
 
-/* 배송 간격 크레딧 보상 태그 */
+/* 배송 간격 크레딧 보상 뱃지 (카드 우상단, 크고 잘 보이게) */
 function CreditTag({ amount }: { amount: number }) {
   return (
     <span
-      className={`shrink-0 inline-flex items-center gap-0.5 text-xs font-bold ${
-        amount > 0 ? 'text-pocari-blue' : 'text-slate-300'
+      className={`shrink-0 inline-flex items-center gap-0.5 text-sm font-bold rounded-full px-2 py-0.5 ${
+        amount > 0 ? 'text-pocari-blue bg-pocari-light' : 'text-slate-400 bg-slate-100'
       }`}
     >
-      <Coins className="w-3 h-3" />+{money(amount)}
+      <Coins className="w-3.5 h-3.5" />+{money(amount)}
     </span>
   );
 }
