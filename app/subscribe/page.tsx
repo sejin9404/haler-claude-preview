@@ -41,6 +41,16 @@ const CREDIT_BALANCE = 12.0;
 // 마지막 선택 저장 키 (재방문 시 복원)
 const STORAGE_KEY = 'haler.subscribe.config.v1';
 
+// 공통 부드러운 전환 (블록 확장/재배치)
+const SPRING = { type: 'spring', stiffness: 280, damping: 30 } as const;
+// 값/텍스트 교체 시 짧은 페이드
+const swap = {
+  initial: { opacity: 0, y: 4 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -4 },
+  transition: { duration: 0.2 },
+} as const;
+
 type Slot = { themeId: string | null; flavorId: string | null };
 
 const money = (n: number) => `$${n.toFixed(0)}`;
@@ -277,7 +287,8 @@ export default function SubscribeConfigurator() {
           caption={`Tap a slot, then pick a flavor · ${filledCount}/${boxCount} filled`}
         >
           {/* 슬롯 트레이 */}
-          <div className="flex flex-wrap gap-2.5 mb-5">
+          <motion.div layout transition={SPRING} className="flex flex-wrap gap-2.5 mb-5">
+            <AnimatePresence mode="popLayout" initial={false}>
             {slots.map((slot, i) => {
               const f = flavorById(slot.themeId, slot.flavorId);
               const active = i === activeSlot;
@@ -285,6 +296,10 @@ export default function SubscribeConfigurator() {
                 <motion.button
                   key={i}
                   layout
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  transition={SPRING}
                   onClick={() => setActiveSlot(i)}
                   whileTap={{ scale: 0.95 }}
                   className={`relative w-16 h-20 rounded-2xl border-2 flex flex-col items-center justify-center overflow-hidden transition-colors ${
@@ -316,7 +331,8 @@ export default function SubscribeConfigurator() {
                 </motion.button>
               );
             })}
-          </div>
+            </AnimatePresence>
+          </motion.div>
 
           {/* 팔레트: 테마 탭 + 맛 스와치 */}
           <div className="bg-white rounded-3xl p-4 border border-slate-100">
@@ -335,24 +351,33 @@ export default function SubscribeConfigurator() {
                 </button>
               ))}
             </div>
-            <div className="grid grid-cols-5 gap-2 mt-1">
-              {currentTheme.flavors.map((f) => {
-                const chosen = slots[activeSlot]?.flavorId === f.id && slots[activeSlot]?.themeId === currentTheme.id;
-                return (
-                  <motion.button
-                    key={f.id}
-                    whileTap={{ scale: 0.9 }}
-                    onClick={() => assignFlavor(currentTheme.id, f.id)}
-                    className={`aspect-square rounded-2xl flex flex-col items-center justify-center gap-1 border-2 transition-colors ${
-                      chosen ? 'border-pocari-blue bg-pocari-light' : 'border-transparent bg-slate-50'
-                    }`}
-                  >
-                    <Image src={f.image} alt={f.name} width={32} height={32} className="w-8 h-8 object-contain" />
-                    <span className="text-[8px] font-bold text-slate-500">{f.tag}</span>
-                  </motion.button>
-                );
-              })}
-            </div>
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={activeTheme}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.18 }}
+                className="grid grid-cols-5 gap-2 mt-1"
+              >
+                {currentTheme.flavors.map((f) => {
+                  const chosen = slots[activeSlot]?.flavorId === f.id && slots[activeSlot]?.themeId === currentTheme.id;
+                  return (
+                    <motion.button
+                      key={f.id}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => assignFlavor(currentTheme.id, f.id)}
+                      className={`aspect-square rounded-2xl flex flex-col items-center justify-center gap-1 border-2 transition-colors ${
+                        chosen ? 'border-pocari-blue bg-pocari-light' : 'border-transparent bg-slate-50'
+                      }`}
+                    >
+                      <Image src={f.image} alt={f.name} width={32} height={32} className="w-8 h-8 object-contain" />
+                      <span className="text-[8px] font-bold text-slate-500">{f.tag}</span>
+                    </motion.button>
+                  );
+                })}
+              </motion.div>
+            </AnimatePresence>
           </div>
 
           <AnimatePresence>
@@ -498,7 +523,7 @@ export default function SubscribeConfigurator() {
             className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-[0_-8px_40px_rgba(0,0,0,0.12)] border border-white p-3 flex flex-col sm:flex-row sm:items-center gap-3"
           >
             {/* 진행상황 요약 — 선택 내용을 순서대로 (플랜 › 플레이버 › 배송 › 크레딧 › 합계) */}
-            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide pl-1 sm:pl-2 min-w-0">
+            <motion.div layout className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide pl-1 sm:pl-2 min-w-0">
               <Seg label="Plan" value={`${plan.title} · ${boxCount}`} done />
               <SegDivider />
               <Seg
@@ -509,22 +534,36 @@ export default function SubscribeConfigurator() {
               />
               <SegDivider />
               <Seg label="Delivery" value={freqLabel.replace('Every ', '')} done />
-              {useCredits && creditApplied > 0 && (
-                <>
-                  <SegDivider />
-                  <Seg label="Credits" value={`− ${money(creditApplied)}`} done accent />
-                </>
-              )}
+              <AnimatePresence mode="popLayout">
+                {useCredits && creditApplied > 0 && (
+                  <motion.div
+                    key="credit-seg"
+                    layout
+                    initial={{ opacity: 0, width: 0 }}
+                    animate={{ opacity: 1, width: 'auto' }}
+                    exit={{ opacity: 0, width: 0 }}
+                    transition={SPRING}
+                    className="flex items-center gap-1.5 overflow-hidden"
+                  >
+                    <SegDivider />
+                    <Seg label="Credits" value={`− ${money(creditApplied)}`} done accent />
+                  </motion.div>
+                )}
+              </AnimatePresence>
               <SegDivider />
               {/* 합계 — 기존 가격 블록 대신 요약 끝에 통합 */}
-              <div className="shrink-0 pr-1">
+              <motion.div layout className="shrink-0 pr-1">
                 <div className="text-[9px] uppercase tracking-widest text-slate-400 font-bold">Total</div>
-                <div className="text-lg font-bold text-pocari-blue leading-none mt-0.5 whitespace-nowrap">
-                  {money(total)}
+                <div className="text-lg font-bold text-pocari-blue leading-none mt-0.5 whitespace-nowrap flex items-baseline">
+                  <AnimatePresence mode="popLayout" initial={false}>
+                    <motion.span key={total} {...swap} className="tabular-nums">
+                      {money(total)}
+                    </motion.span>
+                  </AnimatePresence>
                   <span className="text-[11px] text-slate-400 font-medium">{plan.period}</span>
                 </div>
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
 
             <motion.button
               whileTap={{ scale: 0.98 }}
@@ -565,18 +604,30 @@ function Section({
 }) {
   return (
     <motion.section
+      layout
       initial={{ opacity: 0, y: 16 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-60px' }}
+      transition={SPRING}
       className="bg-transparent"
     >
-      <div className="flex items-center gap-x-3 gap-y-1 mb-4 flex-wrap">
+      <motion.div layout className="flex items-center gap-x-3 gap-y-1 mb-4 flex-wrap">
         <span className="w-6 h-6 rounded-full bg-slate-900 text-white text-xs font-bold flex items-center justify-center shrink-0">
           {index}
         </span>
         <h2 className="text-base font-bold leading-none">{title}</h2>
-        {caption && <p className="text-[11px] text-pocari-blue font-medium leading-tight">{caption}</p>}
-      </div>
+        {caption && (
+          <AnimatePresence mode="popLayout" initial={false}>
+            <motion.p
+              key={caption}
+              {...swap}
+              className="text-[11px] text-pocari-blue font-medium leading-tight"
+            >
+              {caption}
+            </motion.p>
+          </AnimatePresence>
+        )}
+      </motion.div>
       {children}
     </motion.section>
   );
@@ -589,7 +640,7 @@ function Seg({
   label: string; value: string; done?: boolean; accent?: boolean; thumbs?: (string | null)[];
 }) {
   return (
-    <div className="shrink-0">
+    <motion.div layout className="shrink-0">
       <div className="text-[9px] uppercase tracking-widest text-slate-400 font-bold flex items-center gap-1">
         {done && <Check className="w-2.5 h-2.5 text-pocari-blue stroke-[3]" />}
         {label}
@@ -608,11 +659,17 @@ function Seg({
             ))}
           </div>
         )}
-        <span className={`text-sm font-bold whitespace-nowrap ${accent ? 'text-pocari-blue' : 'text-slate-800'}`}>
-          {value}
-        </span>
+        <AnimatePresence mode="popLayout" initial={false}>
+          <motion.span
+            key={value}
+            {...swap}
+            className={`text-sm font-bold whitespace-nowrap ${accent ? 'text-pocari-blue' : 'text-slate-800'}`}
+          >
+            {value}
+          </motion.span>
+        </AnimatePresence>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -623,12 +680,19 @@ function SegDivider() {
 /* 배송 간격 크레딧 보상 뱃지 (카드 우상단, 크고 잘 보이게) */
 function CreditTag({ amount }: { amount: number }) {
   return (
-    <span
-      className={`shrink-0 inline-flex items-center gap-0.5 text-sm font-bold rounded-full px-2 py-0.5 ${
+    <motion.span
+      layout
+      transition={SPRING}
+      className={`shrink-0 inline-flex items-center gap-0.5 text-sm font-bold rounded-full px-2 py-0.5 transition-colors duration-300 ${
         amount > 0 ? 'text-pocari-blue bg-pocari-light' : 'text-slate-400 bg-slate-100'
       }`}
     >
-      <Coins className="w-3.5 h-3.5" />+{money(amount)}
-    </span>
+      <Coins className="w-3.5 h-3.5 shrink-0" />
+      <AnimatePresence mode="popLayout" initial={false}>
+        <motion.span key={amount} {...swap} className="tabular-nums">
+          +{money(amount)}
+        </motion.span>
+      </AnimatePresence>
+    </motion.span>
   );
 }
