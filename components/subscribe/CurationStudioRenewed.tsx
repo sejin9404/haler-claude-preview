@@ -12,6 +12,7 @@
 
 import React, { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { X } from 'lucide-react';
 import { themes, AQUA_FLAVOR, AQUA_ID } from '@/app/pass/passData';
 
 type Slot = { themeId: string | null; flavorId: string | null };
@@ -87,9 +88,16 @@ export default function CurationStudioRenewed({ boxCount, slots, onAdd }: Props)
       {/* 콘텐츠 — 하나의 큰 유리 블록 (높이는 콘텐츠에 맞춤) */}
       <div className="relative z-10 p-6 md:p-8">
         <div className="flex flex-col gap-6 rounded-[28px] bg-black/40 backdrop-blur-[40px] border border-white/10 shadow-2xl p-6 md:p-8 overflow-hidden">
-          {/* 테마 정보 (Show All에서는 숨김) */}
+          {/* 테마 정보 (Show All에서는 부드럽게 접힘) */}
+          <AnimatePresence initial={false}>
           {!isShowAll && currentTheme && (
-            <div className="shrink-0 flex flex-col gap-5">
+            <motion.div
+              key="theme-info"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.45, ease: [0.32, 0.72, 0, 1] }}
+              className="shrink-0 flex flex-col gap-5 overflow-hidden">
               <div className="flex items-end justify-between gap-8">
                 <AnimatePresence mode="wait">
                   <motion.h2
@@ -155,8 +163,9 @@ export default function CurationStudioRenewed({ boxCount, slots, onAdd }: Props)
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           )}
+          </AnimatePresence>
 
           {/* 테마 탭 */}
           <div className="shrink-0 flex justify-center py-3">
@@ -165,9 +174,9 @@ export default function CurationStudioRenewed({ boxCount, slots, onAdd }: Props)
                 <button
                   key={theme.id}
                   onClick={() => setActiveTheme(i)}
-                  className={`px-5 py-2 rounded-full text-sm font-medium transition-all relative ${activeTheme === i ? 'text-gray-900' : 'text-white/60 hover:text-white'}`}
+                  className={`px-5 py-2 rounded-full text-sm font-medium transition-all relative ${activeTheme === i ? 'text-white' : 'text-white/60 hover:text-white'}`}
                 >
-                  {activeTheme === i && <motion.div layoutId="studioActiveBg" className="absolute inset-0 bg-white rounded-full z-0 shadow-lg" />}
+                  {activeTheme === i && <motion.div layoutId="studioActiveBg" className="absolute inset-0 bg-black rounded-full z-0 shadow-lg" />}
                   <span className="relative z-10">{theme.name}</span>
                 </button>
               ))}
@@ -198,7 +207,7 @@ export default function CurationStudioRenewed({ boxCount, slots, onAdd }: Props)
                   return (
                     <motion.div
                       key={flavor.id}
-                      animate={{ borderColor: inCart ? '#1C88FF' : 'rgba(255,255,255,0.3)' }}
+                      animate={{ borderColor: inCart ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.3)' }}
                       whileHover={{ scale: 1.04, y: -6, transition: { duration: 0.3, ease: [0.32, 0.72, 0, 1] } }}
                       whileTap={{ scale: 0.98 }}
                       transition={{ duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
@@ -289,6 +298,10 @@ export function StudioBasket({
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={flavor.image} className="absolute inset-0 w-full h-full object-cover" alt={flavor.name} />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                    {/* 취소(X) — 스튜디오 카드 수량 동그라미와 같은 양식 */}
+                    <div className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white flex items-center justify-center shadow-lg">
+                      <X className="w-3.5 h-3.5" />
+                    </div>
                     <div className="absolute bottom-0 inset-x-0 p-2.5">
                       <h4 className="text-xs font-medium text-white truncate">{flavor.name}</h4>
                       <span className="text-[8px] text-white/50 uppercase tracking-widest">{flavor.tag}</span>
