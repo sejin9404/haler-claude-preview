@@ -66,7 +66,7 @@ export default function CurationStudioRenewed({
           animate={{ x: 0 }}
           exit={{ x: '100%' }}
           transition={{ type: 'spring', stiffness: 260, damping: 34 }}
-          className={`fixed top-0 right-0 h-full z-[120] shadow-[0_0_120px_rgba(28,136,255,0.3)] flex flex-col overflow-hidden transition-colors duration-500 ${
+          className={`fixed top-0 right-0 h-full z-[120] rounded-l-[40px] shadow-[0_0_120px_rgba(28,136,255,0.3)] flex flex-col overflow-hidden transition-colors duration-500 ${
             activeTheme === 5 ? 'bg-white' : 'bg-[#EEF5FF]'
           }`}
         >
@@ -109,7 +109,7 @@ export default function CurationStudioRenewed({
                   animate={{ y: 0, height: '48%' }}
                   exit={{ y: '-105%', height: 0 }}
                   transition={{ duration: 0.8, ease: [0.32, 0.72, 0, 1] }}
-                  className="relative flex-shrink-0 w-full overflow-hidden bg-[#0A1F3D] z-50 shadow-[0_24px_60px_rgba(28,136,255,0.28)]"
+                  className="relative flex-shrink-0 w-full overflow-hidden bg-[#0A1F3D] z-50 shadow-2xl"
                 >
                   <div className="absolute inset-0 w-full h-full">
                     <AnimatePresence mode="wait">
@@ -133,7 +133,7 @@ export default function CurationStudioRenewed({
                   </div>
 
                   <div className="absolute inset-x-0 bottom-0 top-24 flex items-center justify-center px-8">
-                    <div className="w-full max-w-4xl bg-[#0A1F3D]/40 backdrop-blur-[40px] rounded-[40px] border border-white/10 shadow-[0_24px_60px_rgba(28,136,255,0.22)] flex flex-col p-8 gap-6 overflow-hidden">
+                    <div className="w-full max-w-4xl bg-[#0A1F3D]/40 backdrop-blur-[40px] rounded-[40px] border border-white/10 shadow-2xl flex flex-col p-8 gap-6 overflow-hidden">
                       <div className="flex items-end justify-between gap-8">
                         <AnimatePresence mode="wait">
                           <motion.h2
@@ -238,7 +238,7 @@ export default function CurationStudioRenewed({
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.35 }}
-                    className="grid grid-cols-3 lg:grid-cols-5 gap-4 w-full pb-64"
+                    className="grid grid-cols-3 lg:grid-cols-5 gap-4 w-full pb-72"
                   >
                     {gridFlavors.map((flavor) => {
                       const qty = cart[flavor.id] || 0;
@@ -275,40 +275,41 @@ export default function CurationStudioRenewed({
               </div>
             </div>
 
-            {/* BASKET — 담긴 플레이버 카드 + 카운터 겸 Clear All */}
+            {/* BASKET — 담긴 플레이버 카드(이름 포함) 그대로 + 카운터 겸 Clear All */}
             <div className="absolute bottom-6 inset-x-0 px-8 z-50">
               <div className="w-full max-w-[960px] mx-auto bg-blue-50/85 backdrop-blur-3xl border border-white rounded-[32px] shadow-[0_20px_50px_rgba(28,136,255,0.25)] p-4">
-                {/* 담긴 플레이버 카드들 */}
-                <div
-                  className="grid gap-3 mb-3"
-                  style={{ gridTemplateColumns: `repeat(${boxCount}, minmax(0, 1fr))` }}
-                >
-                  {Array.from({ length: boxCount }).map((_, i) => {
-                    const s = slots[i];
-                    const flavor = s?.flavorId ? findFlavor(s.flavorId) : null;
-                    return (
-                      <div
-                        key={i}
-                        onClick={() => flavor && onRemoveSlot(i)}
-                        className={`relative h-28 rounded-[18px] overflow-hidden border-2 transition-all ${
-                          flavor
-                            ? 'border-pocari-blue cursor-pointer shadow-[0_10px_24px_rgba(28,136,255,0.22)]'
-                            : 'border-dashed border-blue-200 bg-white/40'
-                        }`}
-                      >
-                        {flavor ? (
-                          <>
+                {/* 선택된 플레이버 카드만 — 중앙정렬, 개수에 따라 양옆 여백 자연스럽게 */}
+                <div className="flex flex-wrap justify-center items-center gap-3 mb-3 min-h-[168px]">
+                  {total === 0 ? (
+                    <span className="text-sm text-slate-400">Pick flavors above to fill your box.</span>
+                  ) : (
+                    <AnimatePresence mode="popLayout" initial={false}>
+                      {slots.map((s, i) => {
+                        const flavor = s.flavorId ? findFlavor(s.flavorId) : null;
+                        if (!flavor) return null;
+                        return (
+                          <motion.div
+                            key={i}
+                            layout
+                            initial={{ opacity: 0, scale: 0.85 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.85 }}
+                            transition={{ type: 'spring', stiffness: 280, damping: 30 }}
+                            onClick={() => onRemoveSlot(i)}
+                            className="relative w-32 aspect-[4/5] rounded-[18px] overflow-hidden cursor-pointer border-2 border-pocari-blue shadow-[0_10px_24px_rgba(28,136,255,0.22)]"
+                          >
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img src={flavor.image} className="absolute inset-0 w-full h-full object-cover" alt={flavor.name} />
-                          </>
-                        ) : (
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="w-1.5 h-1.5 bg-blue-200 rounded-full" />
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
+                            <div className="absolute inset-0 bg-gradient-to-t from-[#0A1F3D]/85 via-transparent to-transparent" />
+                            <div className="absolute bottom-0 inset-x-0 p-2.5">
+                              <h4 className="text-xs font-medium text-white truncate">{flavor.name}</h4>
+                              <span className="text-[8px] text-white/50 uppercase tracking-widest">{flavor.tag}</span>
+                            </div>
+                          </motion.div>
+                        );
+                      })}
+                    </AnimatePresence>
+                  )}
                 </div>
 
                 {/* 카운터 겸 Clear All (가로 꽉) */}
