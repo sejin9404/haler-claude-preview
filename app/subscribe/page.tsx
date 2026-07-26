@@ -34,6 +34,9 @@ const FREQUENCIES = [
 // 목업: 우리 크레딧 잔액 (Shopify Payments엔 저장되지 않는 우리만의 데이터)
 const CREDIT_BALANCE = 12.0;
 
+// 마지막 선택 저장 키 (재방문 시 복원)
+const STORAGE_KEY = 'haler.subscribe.config.v1';
+
 type Slot = { themeId: string | null; flavorId: string | null };
 
 const money = (n: number) => `$${n.toFixed(0)}`;
@@ -52,6 +55,37 @@ export default function SubscribeConfigurator() {
 
   const [frequency, setFrequency] = useState<string>('monthly');
   const [useCredits, setUseCredits] = useState(false);
+
+  // 이 페이지는 재방문해서 구독을 수정하는 관리 페이지 → 마지막 선택을 저장/복원.
+  // (목업: localStorage. 실제 구현에서는 Supabase box_configs / Shopify contract에 저장)
+  const [hydrated, setHydrated] = useState(false);
+  React.useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const saved = JSON.parse(raw);
+        if (saved.planId) setPlanId(saved.planId);
+        if (Array.isArray(saved.slots)) setSlots(saved.slots);
+        if (saved.frequency) setFrequency(saved.frequency);
+        if (typeof saved.useCredits === 'boolean') setUseCredits(saved.useCredits);
+      }
+    } catch {
+      /* ignore */
+    }
+    setHydrated(true);
+  }, []);
+
+  React.useEffect(() => {
+    if (!hydrated) return; // 복원 전에는 저장하지 않음(기본값 덮어쓰기 방지)
+    try {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({ planId, slots, frequency, useCredits })
+      );
+    } catch {
+      /* ignore */
+    }
+  }, [hydrated, planId, slots, frequency, useCredits]);
 
   // 플랜 바뀌면 슬롯 개수 재조정 (기존 선택 보존)
   React.useEffect(() => {
@@ -395,25 +429,7 @@ export default function SubscribeConfigurator() {
           </div>
         </Section>
 
-        {/* ── 5. REVIEW ── */}
-        <Section index={5} title="Quick look" caption="Everything good? Then let's go.">
-          <div className="bg-white rounded-3xl p-5 border border-slate-100 space-y-3">
-            <Row label="Plan" value={`${plan.title} · ${boxCount} boxes`} />
-            <Row label="Flavors" value={`${filledCount}/${boxCount} filled`} />
-            <Row label="Delivery" value={FREQUENCIES.find((f) => f.id === frequency)?.label ?? ''} />
-            {useCredits && <Row label="Credits" value={`− ${money(creditApplied)}`} accent />}
-            <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-              <span className="text-sm font-bold">Total today</span>
-              <div className="text-right">
-                {creditApplied > 0 && (
-                  <span className="text-xs text-slate-400 line-through mr-2">{money(basePrice)}</span>
-                )}
-                <span className="text-2xl font-bold text-pocari-blue">{money(total)}</span>
-                <span className="text-xs text-slate-400 font-medium">{plan.period}</span>
-              </div>
-            </div>
-          </div>
-        </Section>
+        {/* 5번 리뷰 섹션은 제거 — 진행상황 요약은 하단 플로팅 바에 통합됨 */}
       </main>
 
       {/* ── STICKY 요약 + 핸드오프 CTA ── */}
@@ -422,22 +438,46 @@ export default function SubscribeConfigurator() {
           <motion.div
             initial={{ y: 40, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-[0_-8px_40px_rgba(0,0,0,0.12)] border border-white p-3 flex items-center gap-3"
+            className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-[0_-8px_40px_rgba(0,0,0,0.12)] border border-white p-3 flex flex-col sm:flex-row sm:items-center gap-3"
           >
-            <div className="pl-3">
-              <div className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">
-                {plan.title} · {boxCount} boxes
-              </div>
-              <div className="text-lg font-bold text-slate-900 leading-none mt-0.5">
-                {money(total)}
-                <span className="text-[11px] text-slate-400 font-medium">{plan.period}</span>
+            {/* 진행상황 요약 — 선택 내용을 순서대로 (플랜 › 플레이버 › 배송 › 크레딧 › 합계) */}
+            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide pl-1 sm:pl-2 min-w-0">
+              <Seg label="Plan" value={`${plan.title} · ${boxCount}`} done />
+              <SegDivider />
+              <Seg
+                label="Flavors"
+                value={`${filledCount}/${boxCount}`}
+                done={allFilled}
+                thumbs={slots.map((s) => flavorById(s.themeId, s.flavorId)?.image ?? null)}
+              />
+              <SegDivider />
+              <Seg
+                label="Delivery"
+                value={(FREQUENCIES.find((f) => f.id === frequency)?.label ?? '').replace('Every ', '')}
+                done
+              />
+              {useCredits && creditApplied > 0 && (
+                <>
+                  <SegDivider />
+                  <Seg label="Credits" value={`− ${money(creditApplied)}`} done accent />
+                </>
+              )}
+              <SegDivider />
+              {/* 합계 — 기존 가격 블록 대신 요약 끝에 통합 */}
+              <div className="shrink-0 pr-1">
+                <div className="text-[9px] uppercase tracking-widest text-slate-400 font-bold">Total</div>
+                <div className="text-lg font-bold text-pocari-blue leading-none mt-0.5 whitespace-nowrap">
+                  {money(total)}
+                  <span className="text-[11px] text-slate-400 font-medium">{plan.period}</span>
+                </div>
               </div>
             </div>
+
             <motion.button
               whileTap={{ scale: 0.98 }}
               disabled={!allFilled}
               onClick={handleCheckout}
-              className={`ml-auto h-14 px-6 rounded-2xl font-bold text-sm flex items-center gap-2 transition-colors ${
+              className={`sm:ml-auto shrink-0 h-14 px-6 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-colors ${
                 allFilled
                   ? 'bg-pocari-blue text-white shadow-[0_8px_20px_rgba(28,136,255,0.35)]'
                   : 'bg-slate-100 text-slate-400'
@@ -491,11 +531,40 @@ function Section({
   );
 }
 
-function Row({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
+/* 플로팅 바 진행상황 세그먼트 */
+function Seg({
+  label, value, done, accent, thumbs,
+}: {
+  label: string; value: string; done?: boolean; accent?: boolean; thumbs?: (string | null)[];
+}) {
   return (
-    <div className="flex items-center justify-between text-sm">
-      <span className="text-slate-400">{label}</span>
-      <span className={`font-bold ${accent ? 'text-pocari-blue' : 'text-slate-700'}`}>{value}</span>
+    <div className="shrink-0">
+      <div className="text-[9px] uppercase tracking-widest text-slate-400 font-bold flex items-center gap-1">
+        {done && <Check className="w-2.5 h-2.5 text-pocari-blue stroke-[3]" />}
+        {label}
+      </div>
+      <div className="flex items-center gap-1 mt-0.5">
+        {thumbs && (
+          <div className="flex -space-x-1">
+            {thumbs.filter(Boolean).slice(0, 3).map((src, i) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key={i}
+                src={src as string}
+                alt=""
+                className="w-4 h-4 rounded-full bg-white border border-slate-200 object-contain"
+              />
+            ))}
+          </div>
+        )}
+        <span className={`text-sm font-bold whitespace-nowrap ${accent ? 'text-pocari-blue' : 'text-slate-800'}`}>
+          {value}
+        </span>
+      </div>
     </div>
   );
+}
+
+function SegDivider() {
+  return <ChevronRight className="w-3.5 h-3.5 text-slate-300 shrink-0" />;
 }
