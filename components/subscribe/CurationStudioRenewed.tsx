@@ -109,7 +109,7 @@ export default function CurationStudioRenewed({
                   animate={{ y: 0, height: '48%' }}
                   exit={{ y: '-105%', height: 0 }}
                   transition={{ duration: 0.8, ease: [0.32, 0.72, 0, 1] }}
-                  className="relative flex-shrink-0 w-full overflow-hidden bg-[#0A1F3D] z-50 shadow-2xl"
+                  className="relative flex-shrink-0 w-full overflow-hidden bg-black z-50 shadow-2xl"
                 >
                   <div className="absolute inset-0 w-full h-full">
                     <AnimatePresence mode="wait">
@@ -126,14 +126,14 @@ export default function CurationStudioRenewed({
                             <source src={themes[activeTheme].video} type="video/mp4" />
                           </video>
                         )}
-                        <div className="absolute inset-0 bg-[#0A1F3D]/20" />
-                        <div className="absolute inset-0 bg-gradient-to-b from-[#0A1F3D]/60 via-transparent to-[#0A1F3D]/80" />
+                        <div className="absolute inset-0 bg-black/20" />
+                        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/80" />
                       </motion.div>
                     </AnimatePresence>
                   </div>
 
                   <div className="absolute inset-x-0 bottom-0 top-24 flex items-center justify-center px-8">
-                    <div className="w-full max-w-4xl bg-[#0A1F3D]/40 backdrop-blur-[40px] rounded-[40px] border border-white/10 shadow-2xl flex flex-col p-8 gap-6 overflow-hidden">
+                    <div className="w-full max-w-4xl bg-black/40 backdrop-blur-[40px] rounded-[40px] border border-white/10 shadow-2xl flex flex-col p-8 gap-6 overflow-hidden">
                       <div className="flex items-end justify-between gap-8">
                         <AnimatePresence mode="wait">
                           <motion.h2
@@ -257,7 +257,7 @@ export default function CurationStudioRenewed({
                         >
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img src={flavor.image} className="absolute inset-0 w-full h-full object-cover" alt={flavor.name} />
-                          <div className="absolute inset-0 bg-gradient-to-t from-[#0A1F3D]/90 via-transparent to-transparent" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
                           <div className="absolute bottom-0 inset-x-0 p-4">
                             <h4 className="text-base font-medium text-white mb-0.5">{flavor.name}</h4>
                             <span className="text-[10px] text-white/50 uppercase tracking-widest">{flavor.tag}</span>
@@ -300,7 +300,7 @@ export default function CurationStudioRenewed({
                           >
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img src={flavor.image} className="absolute inset-0 w-full h-full object-cover" alt={flavor.name} />
-                            <div className="absolute inset-0 bg-gradient-to-t from-[#0A1F3D]/85 via-transparent to-transparent" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
                             <div className="absolute bottom-0 inset-x-0 p-2.5">
                               <h4 className="text-xs font-medium text-white truncate">{flavor.name}</h4>
                               <span className="text-[8px] text-white/50 uppercase tracking-widest">{flavor.tag}</span>
