@@ -348,13 +348,20 @@ export default function SubscribeConfigurator() {
                   transition={SPRING}
                   onClick={() => setActiveSlot(i)}
                   whileTap={{ scale: 0.97 }}
-                  className={`relative w-full h-36 rounded-[24px] overflow-hidden transition-shadow ${
+                  className={`relative w-full h-36 rounded-[24px] overflow-hidden border-[3px] border-white transition-shadow ${
                     f ? 'shadow-[0_16px_40px_rgba(28,136,255,0.2)]' : 'bg-slate-50'
                   }`}
                 >
                   {f ? (
-                    // 스튜디오 플레이버 카드 그대로 — 사진만, 텍스트 없이
-                    <Image src={f.image} alt="" fill sizes="200px" className="object-cover" />
+                    // 스튜디오 플레이버 카드 — 사진 + 이름
+                    <>
+                      <Image src={f.image} alt={f.name} fill sizes="200px" className="object-cover" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                      <div className="absolute bottom-0 inset-x-0 p-3">
+                        <div className="text-sm font-medium text-white truncate">{f.name}</div>
+                        <div className="text-[9px] text-white/50 uppercase tracking-widest">{f.tag}</div>
+                      </div>
+                    </>
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center">
                       <Package className={`w-8 h-8 ${active ? 'text-pocari-blue' : 'text-slate-300'}`} />
