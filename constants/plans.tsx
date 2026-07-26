@@ -45,9 +45,9 @@ export const SUBSCRIPTION_PLANS: Plan[] = [
     isPopular: false 
   },
   { 
-    id: 'essential', 
-    tag: 'MOST PICK', 
-    title: 'Essential', 
+    id: 'essential',
+    tag: 'MOST PICK',
+    title: 'Ritual',
     boxes: '3 BOXES', 
     price: '49', 
     period: '/mo',

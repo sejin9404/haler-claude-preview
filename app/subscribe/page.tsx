@@ -239,34 +239,25 @@ export default function SubscribeConfigurator() {
                       : 'border-transparent bg-white/70 hover:bg-white'
                   }`}
                 >
-                  {p.isPopular && (
-                    <span className="absolute -top-2 left-5 bg-pocari-blue text-white text-[9px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full">
-                      Most pick
-                    </span>
-                  )}
-                  <div className="flex items-center justify-between">
+                  {/* 상단: 박스 수(좌) + 뱃지(우, 기존 체크 자리) */}
+                  <div className="flex items-center justify-between min-h-[18px]">
                     <span className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">
                       {p.boxes}
                     </span>
-                    <AnimatePresence>
-                      {selected && (
-                        <motion.span
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          exit={{ scale: 0 }}
-                          className="w-5 h-5 rounded-full bg-pocari-blue flex items-center justify-center"
-                        >
-                          <Check className="w-3 h-3 text-white stroke-[3]" />
-                        </motion.span>
-                      )}
-                    </AnimatePresence>
+                    {(p.isPopular || p.isBestValue) && (
+                      <span className="bg-pocari-blue text-white text-[9px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full">
+                        {p.tag}
+                      </span>
+                    )}
                   </div>
-                  <div className="mt-2 text-xl font-bold">{p.title}</div>
-                  <div className="mt-1 text-2xl font-bold text-pocari-blue">
-                    ${p.price}
-                    <span className="text-xs text-slate-400 font-medium">{p.period}</span>
+
+                  {/* 플랜 이름 + 가격 — 같은 줄, 같은 크기, 위아래 넉넉한 간격 */}
+                  <div className="flex items-baseline justify-between gap-2 my-6">
+                    <span className="text-[26px] font-bold leading-none">{p.title}</span>
+                    <span className="text-[26px] font-bold leading-none text-pocari-blue">${p.price}</span>
                   </div>
-                  <ul className="mt-3 space-y-1.5">
+
+                  <ul className="space-y-1.5">
                     {p.features.slice(0, 3).map((f, i) => (
                       <li key={i} className="flex items-center gap-1.5 text-[11px] text-slate-500">
                         <span className="text-pocari-blue">{f.icon}</span>
@@ -274,6 +265,20 @@ export default function SubscribeConfigurator() {
                       </li>
                     ))}
                   </ul>
+
+                  {/* 선택 체크 — 우하단 모서리 */}
+                  <AnimatePresence>
+                    {selected && (
+                      <motion.span
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        exit={{ scale: 0 }}
+                        className="absolute bottom-3 right-3 w-5 h-5 rounded-full bg-pocari-blue flex items-center justify-center"
+                      >
+                        <Check className="w-3 h-3 text-white stroke-[3]" />
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
                 </motion.button>
               );
             })}
