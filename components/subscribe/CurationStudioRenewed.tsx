@@ -1,9 +1,12 @@
 'use client';
 
 /**
- * Curation Studio — 우측에서 슬라이딩해 들어오는 플레이버 선택 드로어 (데스크탑 전용)
+ * Curation Studio (Renewed) — /subscribe 전용 리뉴얼 버전
  *
- * app/pass 의 PassDesktop "Curation Studio"(Step 2 모달)를 /subscribe 섹션 2에 통합한 버전.
+ * 기존 홈페이지(PassDesktop)의 Curation Studio와는 별개의 리뉴얼 버전.
+ * - 우측에서 왼쪽으로 슬라이딩(페이지를 밀어냄, 오버레이/블러 없음)
+ * - 그림자/배경을 하늘색 계열로 통일
+ * - 장바구니를 확대해 담긴 플레이버 카드를 그대로 표시, 하단은 카운터 겸 Clear All 버튼 하나
  * 선택 상태는 부모(/subscribe)의 slots 를 단일 진실로 삼고, add/removeSlot/clear 콜백으로 동기화한다.
  */
 
@@ -28,7 +31,7 @@ interface Props {
 const findFlavor = (flavorId: string) =>
   themes.flatMap((t) => t.flavors).find((f) => f.id === flavorId) ?? null;
 
-export default function CurationStudio({
+export default function CurationStudioRenewed({
   open, onClose, boxCount, slots, width, onAdd, onRemoveSlot, onClear,
 }: Props) {
   const [activeTheme, setActiveTheme] = useState(0); // 0-4: themes, 5: Show All
@@ -63,8 +66,8 @@ export default function CurationStudio({
           animate={{ x: 0 }}
           exit={{ x: '100%' }}
           transition={{ type: 'spring', stiffness: 260, damping: 34 }}
-          className={`fixed top-0 right-0 h-full z-[120] shadow-[0_0_120px_rgba(0,0,0,0.35)] flex flex-col overflow-hidden transition-colors duration-500 ${
-            activeTheme === 5 ? 'bg-white' : 'bg-[#F8FAFC]'
+          className={`fixed top-0 right-0 h-full z-[120] shadow-[0_0_120px_rgba(28,136,255,0.3)] flex flex-col overflow-hidden transition-colors duration-500 ${
+            activeTheme === 5 ? 'bg-white' : 'bg-[#EEF5FF]'
           }`}
         >
             {/* HEADER */}
@@ -106,7 +109,7 @@ export default function CurationStudio({
                   animate={{ y: 0, height: '48%' }}
                   exit={{ y: '-105%', height: 0 }}
                   transition={{ duration: 0.8, ease: [0.32, 0.72, 0, 1] }}
-                  className="relative flex-shrink-0 w-full overflow-hidden bg-black z-50 shadow-2xl"
+                  className="relative flex-shrink-0 w-full overflow-hidden bg-[#0A1F3D] z-50 shadow-[0_24px_60px_rgba(28,136,255,0.28)]"
                 >
                   <div className="absolute inset-0 w-full h-full">
                     <AnimatePresence mode="wait">
@@ -123,14 +126,14 @@ export default function CurationStudio({
                             <source src={themes[activeTheme].video} type="video/mp4" />
                           </video>
                         )}
-                        <div className="absolute inset-0 bg-black/20" />
-                        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/80" />
+                        <div className="absolute inset-0 bg-[#0A1F3D]/20" />
+                        <div className="absolute inset-0 bg-gradient-to-b from-[#0A1F3D]/60 via-transparent to-[#0A1F3D]/80" />
                       </motion.div>
                     </AnimatePresence>
                   </div>
 
                   <div className="absolute inset-x-0 bottom-0 top-24 flex items-center justify-center px-8">
-                    <div className="w-full max-w-4xl bg-black/40 backdrop-blur-[40px] rounded-[40px] border border-white/10 shadow-2xl flex flex-col p-8 gap-6 overflow-hidden">
+                    <div className="w-full max-w-4xl bg-[#0A1F3D]/40 backdrop-blur-[40px] rounded-[40px] border border-white/10 shadow-[0_24px_60px_rgba(28,136,255,0.22)] flex flex-col p-8 gap-6 overflow-hidden">
                       <div className="flex items-end justify-between gap-8">
                         <AnimatePresence mode="wait">
                           <motion.h2
@@ -235,7 +238,7 @@ export default function CurationStudio({
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.35 }}
-                    className="grid grid-cols-3 lg:grid-cols-5 gap-4 w-full pb-32"
+                    className="grid grid-cols-3 lg:grid-cols-5 gap-4 w-full pb-64"
                   >
                     {gridFlavors.map((flavor) => {
                       const qty = cart[flavor.id] || 0;
@@ -247,14 +250,14 @@ export default function CurationStudio({
                           whileHover={{ scale: 1.05, y: -8, transition: { duration: 0.35, ease: [0.32, 0.72, 0, 1] } }}
                           whileTap={{ scale: 0.98 }}
                           transition={{ duration: 0.4, ease: [0.32, 0.72, 0, 1] }}
-                          className={`relative aspect-[4/5] rounded-[24px] overflow-hidden cursor-pointer shadow-xl border-[5px] ${
+                          className={`relative aspect-[4/5] rounded-[24px] overflow-hidden cursor-pointer shadow-[0_16px_40px_rgba(28,136,255,0.2)] border-[5px] ${
                             isFull && !inCart ? 'opacity-50' : ''
                           }`}
                           onClick={() => add(flavor.id)}
                         >
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img src={flavor.image} className="absolute inset-0 w-full h-full object-cover" alt={flavor.name} />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-[#0A1F3D]/90 via-transparent to-transparent" />
                           <div className="absolute bottom-0 inset-x-0 p-4">
                             <h4 className="text-base font-medium text-white mb-0.5">{flavor.name}</h4>
                             <span className="text-[10px] text-white/50 uppercase tracking-widest">{flavor.tag}</span>
@@ -272,16 +275,14 @@ export default function CurationStudio({
               </div>
             </div>
 
-            {/* BASKET */}
+            {/* BASKET — 담긴 플레이버 카드 + 카운터 겸 Clear All */}
             <div className="absolute bottom-6 inset-x-0 px-8 z-50">
-              <div className="w-full max-w-[960px] mx-auto bg-blue-50/80 backdrop-blur-3xl border border-white rounded-full shadow-lg flex items-center justify-between p-2.5">
-                <button
-                  onClick={onClear}
-                  className="h-11 px-6 rounded-full bg-[#1A1A1A] text-white font-medium text-sm hover:bg-black transition-all"
+              <div className="w-full max-w-[960px] mx-auto bg-blue-50/85 backdrop-blur-3xl border border-white rounded-[32px] shadow-[0_20px_50px_rgba(28,136,255,0.25)] p-4">
+                {/* 담긴 플레이버 카드들 */}
+                <div
+                  className="grid gap-3 mb-3"
+                  style={{ gridTemplateColumns: `repeat(${boxCount}, minmax(0, 1fr))` }}
                 >
-                  Clear All
-                </button>
-                <div className="flex-1 flex justify-center items-center gap-2.5 px-5">
                   {Array.from({ length: boxCount }).map((_, i) => {
                     const s = slots[i];
                     const flavor = s?.flavorId ? findFlavor(s.flavorId) : null;
@@ -289,37 +290,40 @@ export default function CurationStudio({
                       <div
                         key={i}
                         onClick={() => flavor && onRemoveSlot(i)}
-                        className={`h-10 flex-1 min-w-[70px] max-w-[130px] rounded-full flex items-center justify-center border transition-all ${
-                          flavor ? 'bg-white border-blue-100 shadow-sm text-[#1C88FF] cursor-pointer' : 'bg-white/30 border-dashed border-blue-200/50'
+                        className={`relative h-28 rounded-[18px] overflow-hidden border-2 transition-all ${
+                          flavor
+                            ? 'border-pocari-blue cursor-pointer shadow-[0_10px_24px_rgba(28,136,255,0.22)]'
+                            : 'border-dashed border-blue-200 bg-white/40'
                         }`}
                       >
                         {flavor ? (
-                          <span className="text-[11px] font-bold truncate px-2">{flavor.name}</span>
+                          <>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={flavor.image} className="absolute inset-0 w-full h-full object-cover" alt={flavor.name} />
+                          </>
                         ) : (
-                          <div className="w-1 h-1 bg-blue-200 rounded-full" />
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-1.5 h-1.5 bg-blue-200 rounded-full" />
+                          </div>
                         )}
                       </div>
                     );
                   })}
                 </div>
+
+                {/* 카운터 겸 Clear All (가로 꽉) */}
                 <button
                   disabled={!isFull}
-                  onClick={() => isFull && onClose()}
-                  className={`h-11 min-w-[110px] rounded-full flex items-center justify-center px-6 shadow-sm font-bold text-sm transition-all duration-300 ${
-                    isFull ? 'bg-[#1C88FF] text-white cursor-pointer hover:bg-blue-600 scale-105' : 'bg-white border border-blue-50 text-gray-400 cursor-default opacity-80'
+                  onClick={() => isFull && onClear()}
+                  className={`w-full h-12 rounded-full font-bold text-sm transition-all duration-300 ${
+                    isFull
+                      ? 'bg-[#1C88FF] text-white hover:bg-blue-600 cursor-pointer'
+                      : 'bg-white text-slate-400 cursor-default'
                   }`}
                 >
-                  {isFull ? (
-                    <motion.span initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}>
-                      Done
-                    </motion.span>
-                  ) : (
-                    <>
-                      <span className="text-[#1C88FF]">{total}</span>
-                      <span className="mx-1">/</span>
-                      {boxCount}
-                    </>
-                  )}
+                  {isFull
+                    ? 'Clear all'
+                    : `Pick ${boxCount - total} flavor${boxCount - total > 1 ? 's' : ''} more!`}
                 </button>
               </div>
             </div>

@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import { SUBSCRIPTION_PLANS, PLAN_LIMITS } from '@/constants/plans';
 import { themes } from '@/app/pass/passData';
-import CurationStudio from '@/components/subscribe/CurationStudio';
+import CurationStudioRenewed from '@/components/subscribe/CurationStudioRenewed';
 
 // 맛 선택 가능한 테마만 (innoscent 등 flavors 없는 건 제외)
 const FLAVOR_THEMES = themes.filter((t) => t.flavors && t.flavors.length > 0);
@@ -348,30 +348,26 @@ export default function SubscribeConfigurator() {
                   transition={SPRING}
                   onClick={() => setActiveSlot(i)}
                   whileTap={{ scale: 0.97 }}
-                  className={`relative w-full h-36 rounded-2xl border-2 flex flex-col items-center justify-center overflow-hidden transition-colors ${
-                    active ? 'border-pocari-blue' : 'border-slate-200'
-                  } ${f ? 'bg-white' : 'bg-slate-50'}`}
+                  className={`relative w-full h-36 rounded-[24px] overflow-hidden border-[5px] transition-colors ${
+                    f
+                      ? 'border-pocari-blue shadow-[0_16px_40px_rgba(28,136,255,0.2)]'
+                      : active
+                        ? 'border-pocari-blue bg-slate-50'
+                        : 'border-transparent bg-slate-50'
+                  }`}
                 >
                   {f ? (
-                    <>
-                      <Image
-                        src={f.image}
-                        alt={f.name}
-                        width={64}
-                        height={64}
-                        className="w-14 h-14 object-contain"
-                      />
-                      <span className="text-[11px] font-bold text-slate-500 mt-2 truncate max-w-[85%]">
-                        {f.name}
-                      </span>
-                    </>
+                    // 스튜디오 플레이버 카드 그대로 — 사진만, 텍스트 없이
+                    <Image src={f.image} alt="" fill sizes="200px" className="object-cover" />
                   ) : (
-                    <Package className={`w-8 h-8 ${active ? 'text-pocari-blue' : 'text-slate-300'}`} />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <Package className={`w-8 h-8 ${active ? 'text-pocari-blue' : 'text-slate-300'}`} />
+                    </div>
                   )}
-                  {active && (
+                  {active && !f && (
                     <motion.div
                       layoutId="slot-ring"
-                      className="absolute inset-0 rounded-2xl ring-2 ring-pocari-blue/30"
+                      className="absolute inset-0 rounded-[24px] ring-2 ring-pocari-blue/30"
                     />
                   )}
                 </motion.button>
@@ -663,7 +659,7 @@ export default function SubscribeConfigurator() {
       </motion.div>
 
       {/* Curation Studio 드로어 (데스크탑 전용) */}
-      <CurationStudio
+      <CurationStudioRenewed
         open={studioOpen}
         onClose={() => setStudioOpen(false)}
         boxCount={boxCount}
