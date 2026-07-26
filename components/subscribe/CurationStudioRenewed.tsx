@@ -206,7 +206,11 @@ export default function CurationStudioRenewed({ boxCount, slots, onAdd }: Props)
                   onClick={() => setActiveTheme(i)}
                   className={`px-5 py-2 rounded-full text-sm font-medium transition-all relative ${activeTheme === i ? 'text-white' : 'text-white/60 hover:text-white'}`}
                 >
-                  {activeTheme === i && <motion.div layoutId="studioActiveBg" className="absolute inset-0 bg-black rounded-full z-0 shadow-lg" />}
+                  <motion.div
+                    animate={{ opacity: activeTheme === i ? 1 : 0 }}
+                    transition={{ duration: 0.25, ease: 'easeOut' }}
+                    className="absolute inset-0 bg-black rounded-full z-0 shadow-lg"
+                  />
                   <span className="relative z-10">{theme.name}</span>
                 </button>
               ))}
@@ -214,7 +218,11 @@ export default function CurationStudioRenewed({ boxCount, slots, onAdd }: Props)
                 onClick={() => setActiveTheme(SHOW_ALL_ID)}
                 className={`px-5 py-2 rounded-full text-sm font-medium transition-all relative ${isShowAll ? 'text-white' : 'text-white/60 hover:text-white'}`}
               >
-                {isShowAll && <motion.div layoutId="studioActiveBg" className="absolute inset-0 bg-pocari-blue rounded-full z-0 shadow-lg" />}
+                <motion.div
+                  animate={{ opacity: isShowAll ? 1 : 0 }}
+                  transition={{ duration: 0.25, ease: 'easeOut' }}
+                  className="absolute inset-0 bg-black rounded-full z-0 shadow-lg"
+                />
                 <span className="relative z-10">Show All</span>
               </button>
             </div>
