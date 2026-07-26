@@ -193,8 +193,12 @@ export default function CurationStudioRenewed({ boxCount, slots, onAdd }: Props)
           )}
           </AnimatePresence>
 
-          {/* 테마 탭 */}
-          <div className="shrink-0 flex justify-center py-3">
+          {/* 테마 탭 — 위치 변화는 translate 로 슬라이드 (툭 튀지 않게) */}
+          <motion.div
+            layout="position"
+            transition={{ layout: { duration: 0.55, ease: [0.32, 0.72, 0, 1] } }}
+            className="shrink-0 flex justify-center py-3"
+          >
             <div className="inline-flex items-center gap-1 p-1.5 bg-white/10 backdrop-blur-xl rounded-full border border-white/10">
               {STUDIO_THEMES.map((theme, i) => (
                 <button
@@ -214,10 +218,12 @@ export default function CurationStudioRenewed({ boxCount, slots, onAdd }: Props)
                 <span className="relative z-10">Show All</span>
               </button>
             </div>
-          </div>
+          </motion.div>
 
           {/* 플레이버 선택 그리드 — 스크롤로 잘리는 위/아래는 마스크로 부드럽게 페이드 */}
-          <div
+          <motion.div
+            layout="position"
+            transition={{ layout: { duration: 0.55, ease: [0.32, 0.72, 0, 1] } }}
             className="max-h-[404px] overflow-auto scrollbar-hide p-3 -m-3"
             style={
               isShowAll
@@ -280,7 +286,7 @@ export default function CurationStudioRenewed({ boxCount, slots, onAdd }: Props)
                 })}
               </motion.div>
             </AnimatePresence>
-          </div>
+          </motion.div>
           </div>
         </motion.div>
       </div>
