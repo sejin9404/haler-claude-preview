@@ -31,6 +31,8 @@ type ParsedConfig = {
   planId: string;
   slots: { t: string | null; f: string | null }[];
   freq: string;
+  freqLabel?: string;
+  earnCredit?: number;
   credit: number;
   total: number;
 };
@@ -75,7 +77,8 @@ function CheckoutInner() {
   const credit = config.credit || 0;
   const subtotal = basePrice;
   const total = typeof config.total === 'number' ? config.total : Math.max(0, subtotal - credit);
-  const freqLabel = FREQ_LABEL[config.freq] ?? 'Every month';
+  const freqLabel = config.freqLabel || FREQ_LABEL[config.freq] || 'Every month';
+  const earnCredit = config.earnCredit || 0;
 
   const flavors = config.slots
     .map((s) => resolveFlavor(s.t, s.f))
@@ -126,7 +129,7 @@ function CheckoutInner() {
             className="lg:hidden bg-[#FAFAFA] border-b border-slate-200 overflow-hidden"
           >
             <div className="px-5 py-4">
-              <OrderSummary {...{ plan, boxes, flavors, freqLabel, subtotal, credit, total }} />
+              <OrderSummary {...{ plan, boxes, flavors, freqLabel, subtotal, credit, total, earnCredit }} />
             </div>
           </motion.div>
         )}
@@ -233,7 +236,7 @@ function CheckoutInner() {
         {/* ── 우: 주문 요약 (데스크톱) ── */}
         <aside className="hidden lg:block bg-[#FAFAFA] border-l border-slate-200 px-8 py-8 order-2">
           <div className="sticky top-8">
-            <OrderSummary {...{ plan, boxes, flavors, freqLabel, subtotal, credit, total }} />
+            <OrderSummary {...{ plan, boxes, flavors, freqLabel, subtotal, credit, total, earnCredit }} />
           </div>
         </aside>
       </div>
@@ -278,7 +281,7 @@ function CheckoutInner() {
 
 /* ── 주문 요약 ── */
 function OrderSummary({
-  plan, boxes, flavors, freqLabel, subtotal, credit, total,
+  plan, boxes, flavors, freqLabel, subtotal, credit, total, earnCredit = 0,
 }: {
   plan: (typeof SUBSCRIPTION_PLANS)[number];
   boxes: number;
@@ -287,6 +290,7 @@ function OrderSummary({
   subtotal: number;
   credit: number;
   total: number;
+  earnCredit?: number;
 }) {
   return (
     <div>
@@ -350,6 +354,14 @@ function OrderSummary({
           <span className="text-2xl font-bold text-slate-900">{money(total)}</span>
         </span>
       </div>
+
+      {/* 배송 간격 보상 크레딧 안내 */}
+      {earnCredit > 0 && (
+        <div className="mt-3 flex items-center gap-1.5 text-xs text-[#1C88FF] bg-[#F5FAFF] rounded-lg px-3 py-2">
+          <Tag className="w-3.5 h-3.5" />
+          You&apos;ll earn +{money(earnCredit)} in Haler credits with each delivery.
+        </div>
+      )}
     </div>
   );
 }

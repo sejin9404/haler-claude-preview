@@ -26,10 +26,14 @@ import { themes } from '@/app/pass/passData';
 const FLAVOR_THEMES = themes.filter((t) => t.flavors && t.flavors.length > 0);
 
 const FREQUENCIES = [
-  { id: 'monthly', label: 'Every month', hint: 'Most popular', mult: 1 },
-  { id: 'bimonthly', label: 'Every 2 months', hint: 'Relaxed pace', mult: 1 },
-  { id: 'quarterly', label: 'Every 3 months', hint: 'Stock up', mult: 1 },
+  { id: 'monthly', label: 'Every month', months: 1, badge: 'Most popular' },
+  { id: 'bimonthly', label: 'Every 2 months', months: 2, badge: 'Relaxed pace' },
+  { id: 'quarterly', label: 'Every 3 months', months: 3, badge: 'Stock up' },
 ] as const;
+
+// 배송 간격 크레딧 보상: 한 달 늘릴 때마다 +$5 (매달 +$0, 2달 +$5, 3달 +$10, N달 (N-1)×$5)
+const CREDIT_PER_EXTRA_MONTH = 5;
+const deliveryCredit = (months: number) => Math.max(0, (months - 1) * CREDIT_PER_EXTRA_MONTH);
 
 // 목업: 우리 크레딧 잔액 (Shopify Payments엔 저장되지 않는 우리만의 데이터)
 const CREDIT_BALANCE = 12.0;
@@ -54,6 +58,7 @@ export default function SubscribeConfigurator() {
   const [activeTheme, setActiveTheme] = useState(FLAVOR_THEMES[0].id);
 
   const [frequency, setFrequency] = useState<string>('monthly');
+  const [customMonths, setCustomMonths] = useState<number>(4);
   const [useCredits, setUseCredits] = useState(false);
 
   // 이 페이지는 재방문해서 구독을 수정하는 관리 페이지 → 마지막 선택을 저장/복원.
@@ -67,6 +72,7 @@ export default function SubscribeConfigurator() {
         if (saved.planId) setPlanId(saved.planId);
         if (Array.isArray(saved.slots)) setSlots(saved.slots);
         if (saved.frequency) setFrequency(saved.frequency);
+        if (typeof saved.customMonths === 'number') setCustomMonths(saved.customMonths);
         if (typeof saved.useCredits === 'boolean') setUseCredits(saved.useCredits);
       }
     } catch {
@@ -75,12 +81,20 @@ export default function SubscribeConfigurator() {
     setHydrated(true);
   }, []);
 
+  // 현재 배송 간격/보상 크레딧 (커스텀 포함)
+  const currentMonths =
+    frequency === 'custom'
+      ? Math.max(1, customMonths || 1)
+      : FREQUENCIES.find((f) => f.id === frequency)?.months ?? 1;
+  const earnCredit = deliveryCredit(currentMonths);
+  const freqLabel = frequency === 'custom' ? `Every ${currentMonths} months` : (FREQUENCIES.find((f) => f.id === frequency)?.label ?? '');
+
   React.useEffect(() => {
     if (!hydrated) return; // 복원 전에는 저장하지 않음(기본값 덮어쓰기 방지)
     try {
       localStorage.setItem(
         STORAGE_KEY,
-        JSON.stringify({ planId, slots, frequency, useCredits })
+        JSON.stringify({ planId, slots, frequency, customMonths, useCredits })
       );
     } catch {
       /* ignore */
@@ -144,6 +158,8 @@ export default function SubscribeConfigurator() {
       planId,
       slots: slots.map((s) => ({ t: s.themeId, f: s.flavorId })),
       freq: frequency,
+      freqLabel,
+      earnCredit,
       credit: creditApplied,
       total,
     };
@@ -355,31 +371,85 @@ export default function SubscribeConfigurator() {
         </Section>
 
         {/* ── 3. DELIVERY RHYTHM ── */}
-        <Section index={3} title="Delivery rhythm" caption="How often should the good stuff arrive?">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <Section index={3} title="Delivery rhythm" caption="Wait a little longer, earn more credit.">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {FREQUENCIES.map((fq) => {
               const selected = fq.id === frequency;
+              const credit = deliveryCredit(fq.months);
               return (
                 <motion.button
                   key={fq.id}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => setFrequency(fq.id)}
-                  className={`p-4 rounded-2xl border-2 text-left transition-colors ${
+                  className={`relative p-4 rounded-2xl border-2 text-left transition-colors ${
                     selected ? 'border-pocari-blue bg-white' : 'border-transparent bg-white/70'
                   }`}
                 >
-                  <div className="flex items-center justify-between">
-                    <Truck className={`w-5 h-5 ${selected ? 'text-pocari-blue' : 'text-slate-300'}`} />
-                    {selected && <Check className="w-4 h-4 text-pocari-blue stroke-[3]" />}
+                  {/* 우상단 뱃지 */}
+                  {fq.badge && (
+                    <span className="absolute top-2.5 right-2.5 text-[8px] font-bold tracking-wider uppercase text-pocari-blue bg-pocari-light px-1.5 py-0.5 rounded-full">
+                      {fq.badge}
+                    </span>
+                  )}
+                  <Truck className={`w-5 h-5 ${selected ? 'text-pocari-blue' : 'text-slate-300'}`} />
+                  <div className="mt-3 flex items-center justify-between gap-1">
+                    <span className="text-sm font-bold whitespace-nowrap">{fq.label}</span>
+                    <CreditTag amount={credit} />
                   </div>
-                  <div className="mt-2 text-sm font-bold">{fq.label}</div>
-                  <div className="text-[11px] text-slate-400 font-medium">{fq.hint}</div>
+                  {selected && (
+                    <Check className="absolute bottom-3 right-3 w-4 h-4 text-pocari-blue stroke-[3]" />
+                  )}
                 </motion.button>
               );
             })}
+
+            {/* 커스텀 슬롯 — 몇 달에 한 번 받을지 직접 입력 */}
+            <div
+              onClick={() => setFrequency('custom')}
+              className={`relative p-4 rounded-2xl border-2 cursor-pointer transition-colors col-span-2 sm:col-span-1 ${
+                frequency === 'custom' ? 'border-pocari-blue bg-white' : 'border-transparent bg-white/70'
+              }`}
+            >
+              <span className="absolute top-2.5 right-2.5 text-[8px] font-bold tracking-wider uppercase text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-full">
+                Custom
+              </span>
+              <Truck className={`w-5 h-5 ${frequency === 'custom' ? 'text-pocari-blue' : 'text-slate-300'}`} />
+              <div className="mt-3 flex items-center justify-between gap-1">
+                <span className="text-sm font-bold flex items-center gap-1 whitespace-nowrap">
+                  Every
+                  <input
+                    type="number"
+                    min={1}
+                    max={12}
+                    value={customMonths}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setFrequency('custom');
+                    }}
+                    onChange={(e) => {
+                      const v = Math.max(1, Math.min(12, parseInt(e.target.value || '1', 10)));
+                      setCustomMonths(v);
+                      setFrequency('custom');
+                    }}
+                    className="w-10 text-center rounded-lg border border-slate-200 py-0.5 text-pocari-blue font-bold outline-none focus:border-pocari-blue"
+                  />
+                  mo
+                </span>
+                <CreditTag amount={deliveryCredit(Math.max(1, customMonths || 1))} />
+              </div>
+              {frequency === 'custom' && (
+                <Check className="absolute bottom-3 right-3 w-4 h-4 text-pocari-blue stroke-[3]" />
+              )}
+            </div>
           </div>
+
           <p className="mt-3 text-[11px] text-slate-400 flex items-center gap-1.5">
-            <Sparkles className="w-3 h-3" /> Pause or change your rhythm anytime — no cancellation needed.
+            <Coins className="w-3 h-3 text-pocari-blue" />
+            {earnCredit > 0
+              ? `You'll earn +${money(earnCredit)} credit every delivery.`
+              : 'Space out deliveries to start earning credit.'}
+            <span className="text-slate-300">·</span>
+            Pause anytime — no cancellation needed.
           </p>
         </Section>
 
@@ -451,11 +521,7 @@ export default function SubscribeConfigurator() {
                 thumbs={slots.map((s) => flavorById(s.themeId, s.flavorId)?.image ?? null)}
               />
               <SegDivider />
-              <Seg
-                label="Delivery"
-                value={(FREQUENCIES.find((f) => f.id === frequency)?.label ?? '').replace('Every ', '')}
-                done
-              />
+              <Seg label="Delivery" value={freqLabel.replace('Every ', '')} done />
               {useCredits && creditApplied > 0 && (
                 <>
                   <SegDivider />
@@ -517,14 +583,12 @@ function Section({
       viewport={{ once: true, margin: '-60px' }}
       className="bg-transparent"
     >
-      <div className="flex items-center gap-2.5 mb-3">
-        <span className="w-6 h-6 rounded-full bg-slate-900 text-white text-xs font-bold flex items-center justify-center">
+      <div className="flex items-center gap-x-3 gap-y-1 mb-4 flex-wrap">
+        <span className="w-6 h-6 rounded-full bg-slate-900 text-white text-xs font-bold flex items-center justify-center shrink-0">
           {index}
         </span>
-        <div>
-          <h2 className="text-base font-bold leading-none">{title}</h2>
-          {caption && <p className="text-[11px] text-slate-400 mt-1">{caption}</p>}
-        </div>
+        <h2 className="text-base font-bold leading-none">{title}</h2>
+        {caption && <p className="text-[11px] text-slate-400 leading-none">{caption}</p>}
       </div>
       {children}
     </motion.section>
@@ -567,4 +631,17 @@ function Seg({
 
 function SegDivider() {
   return <ChevronRight className="w-3.5 h-3.5 text-slate-300 shrink-0" />;
+}
+
+/* 배송 간격 크레딧 보상 태그 */
+function CreditTag({ amount }: { amount: number }) {
+  return (
+    <span
+      className={`shrink-0 inline-flex items-center gap-0.5 text-xs font-bold ${
+        amount > 0 ? 'text-pocari-blue' : 'text-slate-300'
+      }`}
+    >
+      <Coins className="w-3 h-3" />+{money(amount)}
+    </span>
+  );
 }
