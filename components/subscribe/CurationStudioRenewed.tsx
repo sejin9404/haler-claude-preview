@@ -63,7 +63,7 @@ export default function CurationStudioRenewed({ boxCount, slots, onAdd }: Props)
   };
 
   return (
-    <div className="relative w-full h-[780px] rounded-[32px] overflow-hidden shadow-[0_20px_60px_rgba(28,136,255,0.2)] bg-black">
+    <div className="relative w-full rounded-[32px] overflow-hidden shadow-[0_20px_60px_rgba(28,136,255,0.2)] bg-black">
       {/* 전체 배경 영상 */}
       <AnimatePresence mode="wait">
         <motion.div
@@ -84,9 +84,9 @@ export default function CurationStudioRenewed({ boxCount, slots, onAdd }: Props)
         </motion.div>
       </AnimatePresence>
 
-      {/* 콘텐츠 — 하나의 큰 유리 블록 */}
-      <div className="relative z-10 h-full p-6 md:p-8 flex flex-col">
-        <div className="flex-1 min-h-0 flex flex-col gap-5 rounded-[28px] bg-black/40 backdrop-blur-[40px] border border-white/10 shadow-2xl p-6 md:p-8 overflow-hidden">
+      {/* 콘텐츠 — 하나의 큰 유리 블록 (높이는 콘텐츠에 맞춤) */}
+      <div className="relative z-10 p-6 md:p-8">
+        <div className="flex flex-col gap-6 rounded-[28px] bg-black/40 backdrop-blur-[40px] border border-white/10 shadow-2xl p-6 md:p-8 overflow-hidden">
           {/* 테마 정보 (Show All에서는 숨김) */}
           {!isShowAll && currentTheme && (
             <div className="shrink-0 flex flex-col gap-5">
@@ -159,7 +159,7 @@ export default function CurationStudioRenewed({ boxCount, slots, onAdd }: Props)
           )}
 
           {/* 테마 탭 */}
-          <div className="shrink-0 flex justify-center">
+          <div className="shrink-0 flex justify-center py-3">
             <div className="inline-flex items-center gap-1 p-1.5 bg-white/10 backdrop-blur-xl rounded-full border border-white/10">
               {STUDIO_THEMES.map((theme, i) => (
                 <button
@@ -182,7 +182,7 @@ export default function CurationStudioRenewed({ boxCount, slots, onAdd }: Props)
           </div>
 
           {/* 플레이버 선택 그리드 */}
-          <div className="flex-1 min-h-0 overflow-auto scrollbar-hide">
+          <div className="max-h-[380px] overflow-auto scrollbar-hide">
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeTheme}
@@ -198,7 +198,7 @@ export default function CurationStudioRenewed({ boxCount, slots, onAdd }: Props)
                   return (
                     <motion.div
                       key={flavor.id}
-                      animate={{ borderColor: inCart ? '#1C88FF' : 'transparent' }}
+                      animate={{ borderColor: inCart ? '#1C88FF' : 'rgba(255,255,255,0.3)' }}
                       whileHover={{ scale: 1.04, y: -6, transition: { duration: 0.3, ease: [0.32, 0.72, 0, 1] } }}
                       whileTap={{ scale: 0.98 }}
                       transition={{ duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
