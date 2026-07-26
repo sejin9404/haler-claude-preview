@@ -10,7 +10,7 @@
  * 선택 상태는 부모(/subscribe)의 slots 를 단일 진실로 삼고, add/removeSlot/clear 콜백으로 동기화.
  */
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { themes, AQUA_FLAVOR, AQUA_ID } from '@/app/pass/passData';
@@ -41,8 +41,28 @@ const findFlavor = (flavorId: string): { id: string; name: string; tag: string; 
 
 const isDefaultSlot = (s: Slot) => !s.flavorId || s.flavorId === AQUA_ID;
 
+// SSR 안전한 useLayoutEffect (Next.js 서버 렌더 경고 방지)
+const useIsoLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
+
 export default function CurationStudioRenewed({ boxCount, slots, onAdd }: Props) {
   const [activeTheme, setActiveTheme] = useState(0); // 0..n-1: 테마, SHOW_ALL_ID: Show All
+
+  // 유리 블록 높이 애니메이션의 단일 주체:
+  // 안쪽 콘텐츠의 '자연 높이'를 측정해서 래퍼의 실제 height 를 tween 한다.
+  // (framer 의 layout=transform 방식은 자식을 세로로 찌그러뜨려 덜컹거리므로 사용하지 않음)
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [blockHeight, setBlockHeight] = useState<number | 'auto'>('auto');
+
+  useIsoLayoutEffect(() => {
+    const el = contentRef.current;
+    if (!el) return;
+    const measure = () => setBlockHeight(el.offsetHeight);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+    // activeTheme 이 바뀌면 콘텐츠가 교체되므로 다시 측정
+  }, [activeTheme]);
 
   const cart = useMemo(() => {
     const c: Record<string, number> = {};
@@ -65,14 +85,14 @@ export default function CurationStudioRenewed({ boxCount, slots, onAdd }: Props)
 
   return (
     <div className="relative w-full rounded-[32px] overflow-hidden shadow-[0_20px_60px_rgba(28,136,255,0.2)] bg-black">
-      {/* 전체 배경 영상 */}
-      <AnimatePresence mode="wait">
+      {/* 전체 배경 영상 — 크로스페이드(이전 배경이 사라지기 전에 새 배경이 겹쳐 들어옴) */}
+      <AnimatePresence initial={false}>
         <motion.div
           key={activeTheme}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.7, ease: 'easeInOut' }}
           className="absolute inset-0"
         >
           {bgVideo && (
@@ -85,23 +105,25 @@ export default function CurationStudioRenewed({ boxCount, slots, onAdd }: Props)
         </motion.div>
       </AnimatePresence>
 
-      {/* 콘텐츠 — 하나의 큰 유리 블록 (높이 변화는 layout으로 부드럽게) */}
+      {/* 콘텐츠 — 하나의 큰 유리 블록. 래퍼는 '실제 height' 만 tween (transform 없음 → 찌그러짐/바운스 없음) */}
       <div className="relative z-10 p-6 md:p-8">
         <motion.div
-          layout
-          transition={{ type: 'spring', stiffness: 220, damping: 30 }}
-          className="flex flex-col gap-6 rounded-[28px] bg-black/40 backdrop-blur-[40px] border border-white/10 shadow-2xl p-6 md:p-8 overflow-hidden"
+          animate={{ height: blockHeight }}
+          transition={{ duration: 0.55, ease: [0.32, 0.72, 0, 1] }}
+          className="rounded-[28px] bg-black/40 backdrop-blur-[40px] border border-white/10 shadow-2xl overflow-hidden"
         >
-          {/* 테마 정보 (Show All에서는 부드럽게 접힘) */}
-          <AnimatePresence initial={false}>
+          {/* 자연 높이 측정 대상 (height 애니메이션의 영향을 받지 않는 안쪽 컨테이너) */}
+          <div ref={contentRef} className="relative flex flex-col gap-6 p-6 md:p-8">
+          {/* 테마 정보 (Show All에서는 흐름에서 즉시 빠지고 opacity 로만 사라짐 → 높이는 래퍼가 담당) */}
+          <AnimatePresence mode="popLayout" initial={false}>
           {!isShowAll && currentTheme && (
             <motion.div
               key="theme-info"
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.45, ease: [0.32, 0.72, 0, 1] }}
-              className="shrink-0 flex flex-col gap-5 overflow-hidden">
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
+              className="shrink-0 flex flex-col gap-5">
               <div className="flex items-end justify-between gap-8">
                 <AnimatePresence mode="wait">
                   <motion.h2
@@ -258,6 +280,7 @@ export default function CurationStudioRenewed({ boxCount, slots, onAdd }: Props)
                 })}
               </motion.div>
             </AnimatePresence>
+          </div>
           </div>
         </motion.div>
       </div>
