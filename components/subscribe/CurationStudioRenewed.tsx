@@ -109,7 +109,7 @@ export default function CurationStudioRenewed({
                   animate={{ y: 0, height: '48%' }}
                   exit={{ y: '-105%', height: 0 }}
                   transition={{ duration: 0.8, ease: [0.32, 0.72, 0, 1] }}
-                  className="relative flex-shrink-0 w-full overflow-hidden bg-black z-50 shadow-2xl"
+                  className="relative flex-shrink-0 w-full overflow-hidden rounded-tl-[40px] bg-black z-50 shadow-2xl"
                 >
                   <div className="absolute inset-0 w-full h-full">
                     <AnimatePresence mode="wait">
