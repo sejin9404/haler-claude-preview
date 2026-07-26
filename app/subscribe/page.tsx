@@ -156,6 +156,14 @@ export default function SubscribeConfigurator() {
 
   // ── Curation Studio(데스크탑) ↔ slots 브릿지 ──
   const [studioOpen, setStudioOpen] = useState(false);
+  // 드로어 폭 = 페이지가 왼쪽으로 밀리는 폭 (동기화)
+  const [studioW, setStudioW] = useState(0);
+  React.useEffect(() => {
+    const calc = () => setStudioW(Math.min(880, Math.round(window.innerWidth * 0.6)));
+    calc();
+    window.addEventListener('resize', calc);
+    return () => window.removeEventListener('resize', calc);
+  }, []);
   const themeOfFlavor = (flavorId: string) =>
     themes.find((t) => t.flavors.some((f) => f.id === flavorId)) ?? null;
   const addFlavorToFirstEmpty = (flavorId: string) => {
@@ -202,7 +210,11 @@ export default function SubscribeConfigurator() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F7FAFF] text-slate-900 pb-40">
+    <motion.div
+      animate={{ paddingRight: studioOpen ? studioW : 0 }}
+      transition={SPRING}
+      className="min-h-screen bg-[#F7FAFF] text-slate-900 pb-40"
+    >
       {/* ── HERO / 안심 헤더 ── */}
       <header className="px-5 pt-10 pb-6 max-w-3xl mx-auto text-center">
         <motion.div
@@ -315,8 +327,13 @@ export default function SubscribeConfigurator() {
           title="Fill your box"
           caption={`Tap a slot, then pick a flavor · ${filledCount}/${boxCount} filled`}
         >
-          {/* 슬롯 트레이 */}
-          <motion.div layout transition={SPRING} className="flex flex-wrap gap-2.5 mb-5">
+          {/* 슬롯 트레이 — 플랜 박스 수에 맞춰 가로폭 꽉 채우는 그리드, 고정 높이 */}
+          <motion.div
+            layout
+            transition={SPRING}
+            className="grid gap-2.5 mb-5"
+            style={{ gridTemplateColumns: `repeat(${boxCount}, minmax(0, 1fr))` }}
+          >
             <AnimatePresence mode="popLayout" initial={false}>
             {slots.map((slot, i) => {
               const f = flavorById(slot.themeId, slot.flavorId);
@@ -330,8 +347,8 @@ export default function SubscribeConfigurator() {
                   exit={{ opacity: 0, scale: 0.8 }}
                   transition={SPRING}
                   onClick={() => setActiveSlot(i)}
-                  whileTap={{ scale: 0.95 }}
-                  className={`relative w-16 h-20 rounded-2xl border-2 flex flex-col items-center justify-center overflow-hidden transition-colors ${
+                  whileTap={{ scale: 0.97 }}
+                  className={`relative w-full h-36 rounded-2xl border-2 flex flex-col items-center justify-center overflow-hidden transition-colors ${
                     active ? 'border-pocari-blue' : 'border-slate-200'
                   } ${f ? 'bg-white' : 'bg-slate-50'}`}
                 >
@@ -340,16 +357,16 @@ export default function SubscribeConfigurator() {
                       <Image
                         src={f.image}
                         alt={f.name}
-                        width={40}
-                        height={40}
-                        className="w-9 h-9 object-contain"
+                        width={64}
+                        height={64}
+                        className="w-14 h-14 object-contain"
                       />
-                      <span className="text-[8px] font-bold text-slate-500 mt-1 truncate max-w-[54px]">
+                      <span className="text-[11px] font-bold text-slate-500 mt-2 truncate max-w-[85%]">
                         {f.name}
                       </span>
                     </>
                   ) : (
-                    <Package className={`w-6 h-6 ${active ? 'text-pocari-blue' : 'text-slate-300'}`} />
+                    <Package className={`w-8 h-8 ${active ? 'text-pocari-blue' : 'text-slate-300'}`} />
                   )}
                   {active && (
                     <motion.div
@@ -563,7 +580,11 @@ export default function SubscribeConfigurator() {
       </main>
 
       {/* ── STICKY 요약 + 핸드오프 CTA ── */}
-      <div className="fixed bottom-0 inset-x-0 z-50">
+      <motion.div
+        animate={{ paddingRight: studioOpen ? studioW : 0 }}
+        transition={SPRING}
+        className="fixed bottom-0 inset-x-0 z-50"
+      >
         <div className="max-w-3xl mx-auto px-4 pb-4">
           <motion.div
             initial={{ y: 40, opacity: 0 }}
@@ -639,7 +660,7 @@ export default function SubscribeConfigurator() {
             Payment is handled securely by Shopify. We never see your card.
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Curation Studio 드로어 (데스크탑 전용) */}
       <CurationStudio
@@ -647,11 +668,12 @@ export default function SubscribeConfigurator() {
         onClose={() => setStudioOpen(false)}
         boxCount={boxCount}
         slots={slots}
+        width={studioW}
         onAdd={addFlavorToFirstEmpty}
         onRemoveSlot={clearSlot}
         onClear={clearAllSlots}
       />
-    </div>
+    </motion.div>
   );
 }
 

@@ -19,6 +19,7 @@ interface Props {
   onClose: () => void;
   boxCount: number;
   slots: Slot[];
+  width: number; // 드로어 폭(px) — 페이지 밀림 폭과 동기화
   onAdd: (flavorId: string) => void;
   onRemoveSlot: (index: number) => void;
   onClear: () => void;
@@ -28,7 +29,7 @@ const findFlavor = (flavorId: string) =>
   themes.flatMap((t) => t.flavors).find((f) => f.id === flavorId) ?? null;
 
 export default function CurationStudio({
-  open, onClose, boxCount, slots, onAdd, onRemoveSlot, onClear,
+  open, onClose, boxCount, slots, width, onAdd, onRemoveSlot, onClear,
 }: Props) {
   const [activeTheme, setActiveTheme] = useState(0); // 0-4: themes, 5: Show All
 
@@ -55,26 +56,17 @@ export default function CurationStudio({
   return (
     <AnimatePresence>
       {open && (
-        <div className="fixed inset-0 z-[120]">
-          {/* 배경 */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="absolute inset-0 bg-slate-900/30 backdrop-blur-sm"
-          />
-
-          {/* 드로어 — 오른쪽에서 슬라이딩 */}
-          <motion.aside
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ type: 'spring', stiffness: 260, damping: 34 }}
-            className={`absolute top-0 right-0 h-full w-[94vw] max-w-[1080px] shadow-[0_0_120px_rgba(0,0,0,0.35)] flex flex-col overflow-hidden transition-colors duration-500 ${
-              activeTheme === 5 ? 'bg-white' : 'bg-[#F8FAFC]'
-            }`}
-          >
+        // 드로어 — 오른쪽에서 왼쪽으로 슬라이딩(페이지를 밀어냄, 오버레이/블러 없음)
+        <motion.aside
+          style={{ width }}
+          initial={{ x: '100%' }}
+          animate={{ x: 0 }}
+          exit={{ x: '100%' }}
+          transition={{ type: 'spring', stiffness: 260, damping: 34 }}
+          className={`fixed top-0 right-0 h-full z-[120] shadow-[0_0_120px_rgba(0,0,0,0.35)] flex flex-col overflow-hidden transition-colors duration-500 ${
+            activeTheme === 5 ? 'bg-white' : 'bg-[#F8FAFC]'
+          }`}
+        >
             {/* HEADER */}
             <div className="absolute top-8 left-8 right-8 z-[60] flex items-center justify-between pointer-events-none">
               <div className="pointer-events-auto">
@@ -331,8 +323,7 @@ export default function CurationStudio({
                 </button>
               </div>
             </div>
-          </motion.aside>
-        </div>
+        </motion.aside>
       )}
     </AnimatePresence>
   );
