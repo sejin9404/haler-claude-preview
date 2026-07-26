@@ -23,6 +23,7 @@ interface Props {
   boxCount: number;
   slots: Slot[];
   width: number; // 드로어 폭(px) — 페이지 밀림 폭과 동기화
+  embedded?: boolean; // true면 슬라이드 드로어가 아니라 고정 삽입 블록으로 렌더
   onAdd: (flavorId: string) => void;
   onRemoveSlot: (index: number) => void;
   onClear: () => void;
@@ -36,7 +37,7 @@ const findFlavor = (flavorId: string): { id: string; name: string; tag: string; 
 const isDefaultSlot = (s: Slot) => !s.flavorId || s.flavorId === AQUA_ID;
 
 export default function CurationStudioRenewed({
-  open, onClose, boxCount, slots, width, onAdd, onRemoveSlot, onClear,
+  open, onClose, boxCount, slots, width, embedded = false, onAdd, onRemoveSlot, onClear,
 }: Props) {
   const [activeTheme, setActiveTheme] = useState(0); // 0-4: themes, 5: Show All
 
@@ -61,20 +62,8 @@ export default function CurationStudioRenewed({
   const gridFlavors =
     activeTheme === 5 ? themes.flatMap((t) => t.flavors) : themes[activeTheme]?.flavors ?? [];
 
-  return (
-    <AnimatePresence>
-      {open && (
-        // 드로어 — 오른쪽에서 왼쪽으로 슬라이딩(페이지를 밀어냄, 오버레이/블러 없음)
-        <motion.aside
-          style={{ width }}
-          initial={{ x: '100%' }}
-          animate={{ x: 0 }}
-          exit={{ x: '100%' }}
-          transition={{ type: 'spring', stiffness: 260, damping: 34 }}
-          className={`fixed top-0 right-0 h-full z-[120] rounded-l-[40px] shadow-[0_0_120px_rgba(28,136,255,0.3)] flex flex-col overflow-hidden transition-colors duration-500 ${
-            activeTheme === 5 ? 'bg-white' : 'bg-[#EEF5FF]'
-          }`}
-        >
+  const body = (
+    <>
             {/* HEADER */}
             <div className="absolute top-8 left-8 right-8 z-[60] flex items-center justify-between pointer-events-none">
               <div className="pointer-events-auto">
@@ -93,16 +82,18 @@ export default function CurationStudioRenewed({
                   {activeTheme === 5 ? 'All Collection Explorer' : 'Explore our sensory themes.'}
                 </p>
               </div>
-              <button
-                onClick={onClose}
-                className={`w-11 h-11 rounded-full backdrop-blur-md border flex items-center justify-center transition-all pointer-events-auto ${
-                  activeTheme === 5
-                    ? 'bg-gray-100 border-gray-200 text-gray-900 hover:bg-gray-200'
-                    : 'bg-white/10 border-white/20 text-white hover:bg-white/20'
-                }`}
-              >
-                <X className="w-5 h-5" />
-              </button>
+              {!embedded && (
+                <button
+                  onClick={onClose}
+                  className={`w-11 h-11 rounded-full backdrop-blur-md border flex items-center justify-center transition-all pointer-events-auto ${
+                    activeTheme === 5
+                      ? 'bg-gray-100 border-gray-200 text-gray-900 hover:bg-gray-200'
+                      : 'bg-white/10 border-white/20 text-white hover:bg-white/20'
+                  }`}
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              )}
             </div>
 
             {/* THEATER STAGE */}
@@ -355,6 +346,37 @@ export default function CurationStudioRenewed({
                 </button>
               </div>
             </div>
+    </>
+  );
+
+  // 고정 삽입 모드 (데스크탑 Fill your box 내부) — 슬라이드/팝업 없이 그대로 박음
+  if (embedded) {
+    return (
+      <div
+        className={`relative w-full h-[600px] rounded-[32px] shadow-[0_20px_60px_rgba(28,136,255,0.2)] flex flex-col overflow-hidden transition-colors duration-500 ${
+          activeTheme === 5 ? 'bg-white' : 'bg-[#EEF5FF]'
+        }`}
+      >
+        {body}
+      </div>
+    );
+  }
+
+  // 드로어 모드 — 오른쪽에서 슬라이딩
+  return (
+    <AnimatePresence>
+      {open && (
+        <motion.aside
+          style={{ width }}
+          initial={{ x: '100%' }}
+          animate={{ x: 0 }}
+          exit={{ x: '100%' }}
+          transition={{ type: 'spring', stiffness: 260, damping: 34 }}
+          className={`fixed top-0 right-0 h-full z-[120] rounded-l-[40px] shadow-[0_0_120px_rgba(28,136,255,0.3)] flex flex-col overflow-hidden transition-colors duration-500 ${
+            activeTheme === 5 ? 'bg-white' : 'bg-[#EEF5FF]'
+          }`}
+        >
+          {body}
         </motion.aside>
       )}
     </AnimatePresence>

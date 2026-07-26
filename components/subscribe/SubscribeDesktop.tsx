@@ -321,153 +321,20 @@ export default function SubscribeDesktop() {
         <Section
           index={2}
           title="Fill your box"
-          caption={`Tap a slot, then pick a flavor · ${filledCount}/${boxCount} filled`}
+          caption={`Curate your ${boxCount} flavors — Aqua is the default.`}
         >
-          {/* 슬롯 트레이 — 플랜 박스 수에 맞춰 가로폭 꽉 채우는 그리드, 고정 높이 */}
-          <motion.div
-            layout
-            transition={SPRING}
-            className="grid gap-2.5 mb-5"
-            style={{ gridTemplateColumns: `repeat(${boxCount}, minmax(0, 1fr))` }}
-          >
-            <AnimatePresence mode="popLayout" initial={false}>
-            {slots.map((slot, i) => {
-              const f = flavorById(slot.themeId, slot.flavorId);
-              const active = i === activeSlot;
-              return (
-                <motion.button
-                  key={i}
-                  layout
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                  transition={SPRING}
-                  onClick={() => setActiveSlot(i)}
-                  whileTap={{ scale: 0.97 }}
-                  className={`relative w-full h-36 rounded-[24px] overflow-hidden border-[3px] border-white transition-shadow ${
-                    f ? 'shadow-[0_16px_40px_rgba(28,136,255,0.2)]' : 'bg-slate-50'
-                  }`}
-                >
-                  <AnimatePresence mode="popLayout" initial={false}>
-                    {f ? (
-                      <motion.div
-                        key={f.id}
-                        initial={{ opacity: 0, scale: 1.08 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 1.08 }}
-                        transition={{ duration: 0.28, ease: [0.32, 0.72, 0, 1] }}
-                        className="absolute inset-0"
-                      >
-                        {f.id === AQUA_ID ? (
-                          // 기본값 Aqua — 물/물방울 느낌의 푸른 배경
-                          <>
-                            <div className="absolute inset-0 bg-gradient-to-br from-[#DCEEFF] via-[#A9D6FF] to-[#7BC0FF]" />
-                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_32%_26%,rgba(255,255,255,0.65),transparent_46%)]" />
-                            <div className="absolute bottom-0 inset-x-0 p-3">
-                              <div className="text-sm font-semibold text-[#0B5CAB] truncate">{f.name}</div>
-                              <div className="text-[9px] text-[#0B5CAB]/60 uppercase tracking-widest">{f.tag}</div>
-                            </div>
-                          </>
-                        ) : (
-                          <>
-                            <Image src={f.image} alt={f.name} fill sizes="200px" className="object-cover" />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                            <div className="absolute bottom-0 inset-x-0 p-3">
-                              <div className="text-sm font-medium text-white truncate">{f.name}</div>
-                              <div className="text-[9px] text-white/50 uppercase tracking-widest">{f.tag}</div>
-                            </div>
-                          </>
-                        )}
-                      </motion.div>
-                    ) : (
-                      <motion.div
-                        key="empty"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="absolute inset-0 flex items-center justify-center"
-                      >
-                        <Package className={`w-8 h-8 ${active ? 'text-pocari-blue' : 'text-slate-300'}`} />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                  {active && !f && (
-                    <motion.div
-                      layoutId="slot-ring"
-                      className="absolute inset-0 rounded-[24px] ring-2 ring-pocari-blue/30"
-                    />
-                  )}
-                </motion.button>
-              );
-            })}
-            </AnimatePresence>
-          </motion.div>
-
-          {/* 데스크탑: Curation Studio 열기 (오른쪽에서 슬라이딩) */}
-          <button
-            onClick={() => setStudioOpen(true)}
-            className="hidden md:flex w-full items-center justify-between bg-white rounded-3xl p-5 border border-slate-100 hover:border-pocari-blue/40 hover:shadow-[0_12px_30px_rgba(28,136,255,0.12)] transition-all group"
-          >
-            <span className="flex items-center gap-3">
-              <span className="w-11 h-11 rounded-2xl bg-pocari-light flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-pocari-blue" />
-              </span>
-              <span className="text-left">
-                <span className="block text-sm font-bold text-slate-900">Open Curation Studio</span>
-                <span className="block text-[11px] text-slate-400">
-                  Explore themes and curate your {boxCount} flavors
-                </span>
-              </span>
-            </span>
-            <ArrowRight className="w-5 h-5 text-pocari-blue transition-transform group-hover:translate-x-1" />
-          </button>
-
-          {/* 모바일: 인라인 팔레트 (테마 탭 + 맛 스와치) */}
-          <div className="md:hidden bg-white rounded-3xl p-4 border border-slate-100">
-            <div className="flex gap-2 overflow-x-auto pb-3 -mx-1 px-1">
-              {FLAVOR_THEMES.map((t) => (
-                <button
-                  key={t.id}
-                  onClick={() => setActiveTheme(t.id)}
-                  className={`whitespace-nowrap px-3.5 py-1.5 rounded-full text-xs font-bold transition-colors ${
-                    activeTheme === t.id
-                      ? 'bg-slate-900 text-white'
-                      : 'bg-slate-100 text-slate-500'
-                  }`}
-                >
-                  {t.name}
-                </button>
-              ))}
-            </div>
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.div
-                key={activeTheme}
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -6 }}
-                transition={{ duration: 0.18 }}
-                className="grid grid-cols-5 gap-2 mt-1"
-              >
-                {currentTheme.flavors.map((f) => {
-                  const chosen = slots[activeSlot]?.flavorId === f.id && slots[activeSlot]?.themeId === currentTheme.id;
-                  return (
-                    <motion.button
-                      key={f.id}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={() => assignFlavor(currentTheme.id, f.id)}
-                      className={`aspect-square rounded-2xl flex flex-col items-center justify-center gap-1 border-2 transition-colors ${
-                        chosen ? 'border-pocari-blue bg-pocari-light' : 'border-transparent bg-slate-50'
-                      }`}
-                    >
-                      <Image src={f.image} alt={f.name} width={32} height={32} className="w-8 h-8 object-contain" />
-                      <span className="text-[8px] font-bold text-slate-500">{f.tag}</span>
-                    </motion.button>
-                  );
-                })}
-              </motion.div>
-            </AnimatePresence>
-          </div>
+          {/* 데스크탑: Curation Studio를 고정 삽입 (슬라이드/팝업 X) */}
+          <CurationStudioRenewed
+            embedded
+            open
+            width={0}
+            boxCount={boxCount}
+            slots={slots}
+            onClose={() => {}}
+            onAdd={addFlavorToFirstEmpty}
+            onRemoveSlot={clearSlot}
+            onClear={clearAllSlots}
+          />
 
             </Section>
           </div>
@@ -683,17 +550,6 @@ export default function SubscribeDesktop() {
         </div>
       </motion.div>
 
-      {/* Curation Studio 드로어 (데스크탑 전용) */}
-      <CurationStudioRenewed
-        open={studioOpen}
-        onClose={() => setStudioOpen(false)}
-        boxCount={boxCount}
-        slots={slots}
-        width={studioW}
-        onAdd={addFlavorToFirstEmpty}
-        onRemoveSlot={clearSlot}
-        onClear={clearAllSlots}
-      />
     </div>
   );
 }
