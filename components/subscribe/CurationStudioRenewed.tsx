@@ -85,9 +85,13 @@ export default function CurationStudioRenewed({ boxCount, slots, onAdd }: Props)
         </motion.div>
       </AnimatePresence>
 
-      {/* 콘텐츠 — 하나의 큰 유리 블록 (높이는 콘텐츠에 맞춤) */}
+      {/* 콘텐츠 — 하나의 큰 유리 블록 (높이 변화는 layout으로 부드럽게) */}
       <div className="relative z-10 p-6 md:p-8">
-        <div className="flex flex-col gap-6 rounded-[28px] bg-black/40 backdrop-blur-[40px] border border-white/10 shadow-2xl p-6 md:p-8 overflow-hidden">
+        <motion.div
+          layout
+          transition={{ type: 'spring', stiffness: 220, damping: 30 }}
+          className="flex flex-col gap-6 rounded-[28px] bg-black/40 backdrop-blur-[40px] border border-white/10 shadow-2xl p-6 md:p-8 overflow-hidden"
+        >
           {/* 테마 정보 (Show All에서는 부드럽게 접힘) */}
           <AnimatePresence initial={false}>
           {!isShowAll && currentTheme && (
@@ -190,9 +194,21 @@ export default function CurationStudioRenewed({ boxCount, slots, onAdd }: Props)
             </div>
           </div>
 
-          {/* 플레이버 선택 그리드 — 카드 위치/크기는 그대로, 호버 확대가 안 잘리게 스크롤 박스만 확장 */}
-          <div className="max-h-[404px] overflow-auto scrollbar-hide p-3 -m-3">
-            <AnimatePresence mode="wait">
+          {/* 플레이버 선택 그리드 — 스크롤로 잘리는 위/아래는 마스크로 부드럽게 페이드 */}
+          <div
+            className="max-h-[404px] overflow-auto scrollbar-hide p-3 -m-3"
+            style={
+              isShowAll
+                ? {
+                    maskImage:
+                      'linear-gradient(to bottom, transparent 0, #000 34px, #000 calc(100% - 34px), transparent 100%)',
+                    WebkitMaskImage:
+                      'linear-gradient(to bottom, transparent 0, #000 34px, #000 calc(100% - 34px), transparent 100%)',
+                  }
+                : undefined
+            }
+          >
+            <AnimatePresence mode="popLayout">
               <motion.div
                 key={activeTheme}
                 initial={{ opacity: 0 }}
@@ -243,7 +259,7 @@ export default function CurationStudioRenewed({ boxCount, slots, onAdd }: Props)
               </motion.div>
             </AnimatePresence>
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );

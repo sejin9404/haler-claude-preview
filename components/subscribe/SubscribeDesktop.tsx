@@ -315,7 +315,7 @@ export default function SubscribeDesktop() {
         </section>
 
         {/* ── Panel 2: Fill your box ── */}
-        <section className="snap-start min-h-screen flex flex-col items-center justify-center px-6 py-[10vh]">
+        <section className="snap-start min-h-screen flex flex-col items-center justify-start px-6 pt-[14vh] pb-[10vh]">
           <div className="w-full max-w-4xl">
             {/* ── 2. FLAVORS (박스 채우기) ── */}
         <Section
