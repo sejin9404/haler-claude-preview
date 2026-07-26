@@ -17,7 +17,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import {
   Check, Sparkles, Truck, Coins, ArrowRight, Lock,
-  Package, PartyPopper, ChevronRight,
+  Package, ChevronRight,
 } from 'lucide-react';
 import { SUBSCRIPTION_PLANS, PLAN_LIMITS } from '@/constants/plans';
 import { themes } from '@/app/pass/passData';
@@ -326,6 +326,7 @@ export default function SubscribeConfigurator() {
           index={2}
           title="Fill your box"
           caption={`Tap a slot, then pick a flavor · ${filledCount}/${boxCount} filled`}
+          className="!mt-14"
         >
           {/* 슬롯 트레이 — 플랜 박스 수에 맞춰 가로폭 꽉 채우는 그리드, 고정 높이 */}
           <motion.div
@@ -441,19 +442,6 @@ export default function SubscribeConfigurator() {
             </AnimatePresence>
           </div>
 
-          <AnimatePresence>
-            {allFilled && (
-              <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                className="mt-4 flex items-center justify-center gap-2 text-pocari-blue text-sm font-bold"
-              >
-                <PartyPopper className="w-4 h-4" />
-                Your box is complete!
-              </motion.div>
-            )}
-          </AnimatePresence>
         </Section>
 
         {/* ── 3. DELIVERY RHYTHM ── */}
@@ -675,9 +663,9 @@ export default function SubscribeConfigurator() {
 
 /* ── 재사용 소품 ── */
 function Section({
-  index, title, caption, children,
+  index, title, caption, children, className = '',
 }: {
-  index: number; title: string; caption?: string; children: React.ReactNode;
+  index: number; title: string; caption?: string; children: React.ReactNode; className?: string;
 }) {
   return (
     <motion.section
@@ -686,7 +674,7 @@ function Section({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-60px' }}
       transition={SPRING}
-      className="bg-transparent"
+      className={`bg-transparent ${className}`}
     >
       <motion.div layout className="flex items-center gap-x-3 gap-y-1 mb-4 flex-wrap">
         <span className="w-6 h-6 rounded-full bg-slate-900 text-white text-xs font-bold flex items-center justify-center shrink-0">
