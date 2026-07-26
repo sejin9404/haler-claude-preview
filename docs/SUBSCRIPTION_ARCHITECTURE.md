@@ -1,6 +1,6 @@
 # Haler 자체 구독 시스템 설계 (Shopify 네이티브 구독 위 하이브리드)
 
-> 상태: 설계안 (v1) · 작성 목적: "기존 구독앱(Recharge 등) 대신 우리 크레딧/박스 커스터마이징을 직접 만들어 Shopify 네이티브 구독 API 위에 얹는다"는 방향의 실행 설계.
+> 상태: 설계안 (v2) · 작성 목적: "기존 구독앱(Recharge 등) 대신 우리 크레딧/박스 커스터마이징을 직접 만들어 Shopify 네이티브 구독 API 위에 얹는다"는 방향의 실행 설계.
 
 ---
 
@@ -10,6 +10,21 @@
 - **최초 가입 결제**는 Shopify 체크아웃을 통과한다. (selling plan이 붙은 상품을 구매하는 순간 Subscription Contract가 생성됨) — 이 부분만은 우리가 대체하지 않는다.
 - **가입 이후의 모든 관리 경험(보딩패스)**과 **크레딧/박스 규칙**은 100% 우리 것.
 - 스택: Next.js(App Router) + Supabase + Vercel. (기존 그대로)
+
+### 0.1 확정된 정책 결정
+
+| 항목 | 결정 | 비고 |
+|---|---|---|
+| 크레딧 단위 | **달러(USD)** | 내부 저장은 센트(정수)로, 표시는 달러. 계산 오차 방지 |
+| 크레딧 사용 방식 | **손님이 선택** | 구독별 `credit_mode`: `auto`(매 주기 자동 차감) / `manual`(손님이 쓸 때만) |
+| **구독 상태 모델** | **ON/OFF (정지·재개)** | 손님에겐 "구독 취소" 버튼 없음. 보딩패스/마이페이지엔 **정지·재개만** 노출 |
+| **완전 취소** | **탈퇴 시 자동** | 계정 탈퇴 → 뒤에서 Shopify 계약(`subscriptionContractCancel`) 종료. 사용자 대상 별도 취소 UI 없음 |
+| 정지의 의미 | **매출 관점 = 취소와 동일** | 정지 중 청구/배송 $0. 단, 카드·크레딧·맛 설정 보존 → 원탭 재개 가능(리텐션) |
+| 탈퇴 시 크레딧 | **소멸(기본안)** | 필요 시 정책 변경 가능 |
+
+> **설계 철학**: "구독 취소" 개념을 손님에게 노출하지 않는다. 구독은 **on/off 토글**이며, 정지가 곧 소프트 취소다. 진짜 계약 종료는 **탈퇴**라는 계정 단위 액션에서만 파생된다. → 환불 로직·기간말 취소 로직 불필요, 개발 단순화 + 컴백 용이.
+
+**참고(비블로커):** ①일부 지역 소비자보호 규정의 "쉬운 해지" 요건 → 정지가 청구를 즉시 멈추므로 사실상 충족. 탈퇴(완전취소) 경로는 마이페이지에 접근 가능하게만 두면 됨. ②장기 정지 후 재개 시 카드 만료 가능 → 재개 청구 실패 시 결제수단 업데이트 유도로 처리.
 
 ---
 
@@ -104,11 +119,14 @@ create table subscriptions (
   shopify_contract_id text unique not null,          -- gid://shopify/SubscriptionContract/123
   shopify_customer_id text not null,
   plan_id           text not null,                    -- 'light' | 'essential' | 'daily'
-  status            text not null default 'active',   -- active | paused | cancelled
-  next_billing_at   timestamptz,
+  status            text not null default 'active',   -- active(ON) | paused(OFF) | cancelled(탈퇴로만 진입)
+  credit_mode       text not null default 'manual',   -- 'auto' | 'manual' (손님 선택)
+  paused_at         timestamptz,                       -- OFF 전환 시각
+  next_billing_at   timestamptz,                       -- paused면 null/보류
   created_at        timestamptz default now(),
   updated_at        timestamptz default now()
 );
+-- status 전이: active ⟷ paused (손님이 자유롭게 on/off). cancelled는 탈퇴 시에만, 되돌릴 수 없음.
 
 -- 4.2 박스 커스터마이징(보딩패스 원본 상태)
 create table box_configs (
@@ -132,7 +150,7 @@ create table credit_ledger (
   id              uuid primary key default gen_random_uuid(),
   user_id         uuid not null references auth.users(id),
   subscription_id uuid references subscriptions(id),
-  delta           integer not null,        -- +적립 / -사용 (센트 or 포인트 단위 통일)
+  delta           integer not null,        -- +적립 / -사용. 단위: USD 센트(정수). 표시는 달러
   reason          text not null,           -- 'earn_cycle' | 'spend_cycle' | 'promo' | 'adjust'
   billing_run_id  uuid,                    -- 어느 청구에서 발생했는지
   created_at      timestamptz default now()
@@ -170,10 +188,17 @@ create table billing_runs (
 
 트리거: `subscription_billing_attempts/success` 웹훅 → `credit_ledger`에 `+` row(`reason='earn_cycle'`).
 
-### 5.2 사용 (Spend)
-다음 청구 때 잔액을 (정책에 따라) 자동/선택 차감.
-- 정책 예: "매 주기 잔액의 최대 X까지 자동 차감" 또는 "고객이 보딩패스에서 사용 토글".
+### 5.2 사용 (Spend) — 손님이 방식 선택
+구독별 `credit_mode`로 손님이 결정:
+- **`auto`**: 매 청구 주기에 잔액을 자동으로 (상한 내) 차감.
+- **`manual`**: 손님이 보딩패스에서 "이번에 크레딧 쓰기"를 눌렀을 때만 차감.
 - 차감분은 **Shopify Contract에 할인으로 반영**(§6.3).
+- 단위는 달러(USD). 내부 계산은 센트 정수.
+
+### 5.2.1 정지(OFF) 중 크레딧
+- 정지 중엔 청구가 없으므로 **적립·사용 모두 발생하지 않음.**
+- **기존 잔액은 그대로 보존** → 재개하면 다시 사용 가능. (컴백 유도 장치)
+- **탈퇴 시에만 소멸**(기본 정책).
 
 ### 5.3 Shopify 반영 방식 (권장 A)
 - **A. 계약 드래프트에 정액 할인 추가** (권장): 청구 직전 `subscriptionContractUpdate`로 draft를 열고, 사용 크레딧만큼 fixed-amount 할인 add → commit → 그 주기 청구. 통제력 최상.
@@ -207,6 +232,39 @@ computeCycle(subscription):
   lines   = box_configs.slots → variant lines
   return { lines, gross, credit, net }
 ```
+
+---
+
+## 6.5 구독 상태 전이 — on/off 모델 (취소 개념 없음)
+
+손님에게 "구독 취소"는 노출하지 않는다. 구독은 **켜짐(active) / 꺼짐(paused)** 토글이며, 진짜 계약 종료(`cancelled`)는 **탈퇴**에서만 파생된다.
+
+```
+        ┌──────────── 재개(resume) ────────────┐
+        ▼                                       │
+   ┌─────────┐   정지(pause)   ┌─────────┐       │
+   │ active  │ ───────────────▶│ paused  │───────┘
+   │ (ON)    │◀─────────────── │ (OFF)   │
+   └─────────┘                 └─────────┘
+        │                           │
+        └──────── 계정 탈퇴 ─────────┘
+                     │
+                     ▼
+              ┌────────────┐
+              │ cancelled  │  (터미널 · 되돌리기 불가)
+              └────────────┘
+```
+
+| 액션 | 노출 위치 | 우리 처리 | Shopify API |
+|---|---|---|---|
+| **정지(OFF)** | 보딩패스 / 마이페이지 | status=paused, next_billing 보류. 이번 주기 이미 결제분은 배송 유지 | `subscriptionContractPause` |
+| **재개(ON)** | 보딩패스 / 마이페이지 | status=active, 다음 청구일 재설정 | `subscriptionContractActivate` |
+| **탈퇴(계정삭제)** | 마이페이지 계정 설정(별도, 1-depth 더 깊게) | 연결된 모든 구독 자동 종료, 크레딧 소멸 | `subscriptionContractCancel` |
+
+원칙:
+- 정지는 **즉시 반영**하되, 이미 결제된 이번 주기 박스는 정상 배송(환불 없음). 다음 청구부터 중단 → 자연히 "기간 말" 효과.
+- 재개 시 결제수단 만료 등으로 청구 실패하면 → 결제수단 업데이트 유도(§7 실패 처리 경로 재사용).
+- 탈퇴는 구독 화면이 아니라 **계정 설정**에서만 → 실수 취소 방지 + 소비자보호상 "해지 경로"는 접근 가능하게 유지.
 
 ---
 
@@ -246,13 +304,16 @@ computeCycle(subscription):
 | 현재 mock 메서드 | 실제 구현 | Shopify API |
 |---|---|---|
 | `updateSubscription({planId,flavors})` | 규칙검증 → variant 번역 → draft 갱신 → commit | `subscriptionContractUpdate` / `subscriptionDraft*` / `subscriptionDraftCommit` |
-| `skipSubscription(nextDate)` | 다음 청구 주기 스킵 | `subscriptionBillingCycleSkip` |
-| `cancelSubscription()` | 계약 취소(or 일시정지) | `subscriptionContractCancel` / `subscriptionContractPause` |
-| `restartSubscription()` | 재활성화 | `subscriptionContractActivate` |
+| `skipSubscription(nextDate)` | 다음 청구 주기 스킵(구독 유지) | `subscriptionBillingCycleSkip` |
+| `cancelSubscription()` → **정지로 의미 변경** | 구독 OFF(일시정지). **취소 아님** | `subscriptionContractPause` |
+| `restartSubscription()` → **재개** | 구독 ON | `subscriptionContractActivate` |
+| (신규) 탈퇴 훅 | 계정 삭제 시 연결된 모든 구독 종료 + 크레딧 소멸. **구독 UI엔 없음, 계정 설정에서만** | `subscriptionContractCancel` |
 | `getPortalUrl()` / `redirectToPortal()` | 우리 배송/결제 관리 라우트(또는 Shopify 고객 포털) | Customer payment method update |
 | `redirectToStore()` | 스토어/추가주문 | Storefront cart + sellingPlan |
 
-프론트(`BoardingPass.tsx`)는 이미 이 서비스 인터페이스를 통해 호출 중 → **인터페이스 유지한 채 내부만 실제 API로 교체**하면 UI 변경 최소.
+> ⚠️ 기존 `cancelSubscription()`는 이름과 달리 **정지(pause)** 로 재정의된다. 현재 mock도 이미 status를 `deactivated`로 바꾸고 `restartSubscription()`으로 되살리는 **on/off 구조** → 우리 모델과 일치. 실제화 시 메서드명을 `pauseSubscription()`/`resumeSubscription()`으로 리네이밍 권장.
+
+프론트(`BoardingPass.tsx`)는 이미 이 서비스 인터페이스를 통해 호출 중 → **인터페이스 유지한 채 내부만 실제 API로 교체**하면 UI 변경 최소. "Stop Plan" 버튼 문구도 취소가 아니라 **"구독 정지"** 뉘앙스로 조정.
 
 관리자 `app/admin/subscriptions/page.tsx`도 하드코딩 `SUBSCRIBERS` → 실제 `subscriptions` + Shopify contract 조회로 연결.
 
@@ -280,11 +341,18 @@ computeCycle(subscription):
 4. **크레딧 ↔ 할인 정합성**: 우리 원장 차감과 Shopify 할인 반영이 원자적이지 않음 → `billing_runs`로 상태 기계 관리, 실패 시 롤백/보정 규칙 필요.
 5. **환불/부분취소 시 크레딧 원복** 규칙 정의 필요.
 
-### 확인이 필요한 결정들
-- 크레딧 단위: **센트(금액)** vs 포인트? (권장: 센트로 통일해 계산 단순화)
-- 크레딧 사용: 자동 최대 차감 vs 고객 선택?
-- 취소 시: 즉시 취소 vs 현재 주기 말까지 유지?
+### 확정된 결정 (§0.1)
+- ✅ 크레딧 단위: **달러(USD)** — 내부 센트 정수.
+- ✅ 크레딧 사용: **손님 선택**(`credit_mode` auto/manual).
+- ✅ 취소 모델: **on/off(정지·재개)만**, 완전취소는 **탈퇴 시 자동**. 즉시취소/환불 로직 없음.
+- ✅ 정지 중 크레딧: 보존, 탈퇴 시 소멸.
+
+### 아직 확인이 필요한 결정들
+- 크레딧 사용 상한: 매 주기 net의 최대 몇 %까지 차감 허용? (예: 결제액의 50%까지)
+- `auto` 모드 기본값 여부: 신규 구독의 `credit_mode` 기본은 `manual`? `auto`?
 - skip 정책: 1회 스킵 = 다음 주기로 밀기(청구일 이동)로 통일?
+- 재개 시 청구일: 재개 즉시 청구 vs 다음 정규 청구일까지 대기?
+- 결제 실패 재시도(dunning) 횟수/간격, N회 실패 후 자동 정지 규칙.
 
 ---
 
