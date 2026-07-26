@@ -206,7 +206,7 @@ export default function CurationStudioRenewed({
             </AnimatePresence>
 
             {/* PILL NAVIGATION */}
-            <div className={`relative w-full flex justify-center z-20 transition-all duration-500 ${activeTheme === 5 ? 'pt-32 pb-4' : 'py-5'}`}>
+            <div className={`relative w-full flex justify-center z-20 transition-all duration-500 ${activeTheme === 5 ? 'pt-32 pb-6' : 'py-7'}`}>
               <div className="inline-flex items-center gap-1 p-1.5 bg-gray-50/80 backdrop-blur-xl rounded-full">
                 {themes.map((theme, i) => (
                   <button
@@ -229,7 +229,7 @@ export default function CurationStudioRenewed({
             </div>
 
             {/* FLAVOR GRID */}
-            <div className="flex-1 px-8 py-2 relative z-10 overflow-auto scrollbar-hide">
+            <div className="flex-1 px-8 pt-6 pb-2 relative z-10 overflow-auto scrollbar-hide">
               <div className="max-w-6xl mx-auto">
                 <AnimatePresence mode="wait">
                   <motion.div
@@ -238,7 +238,7 @@ export default function CurationStudioRenewed({
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.35 }}
-                    className="grid grid-cols-3 lg:grid-cols-5 gap-4 w-full pb-72"
+                    className="grid grid-cols-3 lg:grid-cols-5 gap-x-4 gap-y-8 w-full pb-72"
                   >
                     {gridFlavors.map((flavor) => {
                       const qty = cart[flavor.id] || 0;
