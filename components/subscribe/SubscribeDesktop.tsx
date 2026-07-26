@@ -234,20 +234,21 @@ export default function SubscribeDesktop() {
         className="relative z-10 h-screen overflow-y-scroll snap-y snap-mandatory scrollbar-hide"
       >
         {/* ── Panel 1: Hero + Plan (플랜이 화면 중앙, 히어로는 그 위 패딩에 종속) ── */}
-        <section className="snap-center min-h-screen flex flex-col items-center justify-center px-6">
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-16 md:mb-24"
-          >
-            <h1 className="text-5xl md:text-7xl font-bold tracking-tighter text-gray-900 leading-[0.95]">
-              Ritualize your breath.
-            </h1>
-            <p className="mt-5 text-lg md:text-xl text-gray-400 font-light max-w-2xl mx-auto leading-relaxed">
-              Fill your every breath full of scent with daily hydration routine.
-            </p>
-          </motion.div>
-          <div className="w-full max-w-4xl">
+        <section className="snap-center min-h-screen flex items-center justify-center px-6">
+          <div className="relative w-full max-w-4xl">
+            {/* 히어로 — 플랜 위에 떠 있어(패딩 종속), 플랜은 화면 중앙 */}
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="absolute bottom-full inset-x-0 pb-16 md:pb-24 text-center"
+            >
+              <h1 className="text-5xl md:text-7xl font-bold tracking-tighter text-gray-900 leading-[0.95]">
+                Ritualize your breath.
+              </h1>
+              <p className="mt-5 text-lg md:text-xl text-gray-400 font-light max-w-2xl mx-auto leading-relaxed">
+                Fill your every breath full of scent with daily hydration routine.
+              </p>
+            </motion.div>
             {/* ── 1. PLAN ── */}
             <Section index={1} title="Choose your plan" caption="How much hydration fits your life?">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
