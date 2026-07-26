@@ -181,8 +181,8 @@ export default function CurationStudioRenewed({ boxCount, slots, onAdd }: Props)
             </div>
           </div>
 
-          {/* 플레이버 선택 그리드 */}
-          <div className="max-h-[380px] overflow-auto scrollbar-hide">
+          {/* 플레이버 선택 그리드 — 카드 위치/크기는 그대로, 호버 확대가 안 잘리게 스크롤 박스만 확장 */}
+          <div className="max-h-[404px] overflow-auto scrollbar-hide p-3 -m-3">
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeTheme}
