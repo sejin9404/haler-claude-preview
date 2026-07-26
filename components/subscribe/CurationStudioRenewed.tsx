@@ -279,7 +279,7 @@ export default function CurationStudioRenewed({
             <div className="absolute bottom-6 inset-x-0 px-8 z-50">
               <div className="w-full max-w-[960px] mx-auto bg-blue-50/85 backdrop-blur-3xl border border-white rounded-[32px] shadow-[0_20px_50px_rgba(28,136,255,0.25)] p-4">
                 {/* 선택된 플레이버 카드만 — 중앙정렬, 개수에 따라 양옆 여백 자연스럽게 */}
-                <div className="flex flex-nowrap items-center gap-3 mb-3 min-h-[150px]">
+                <div className="flex flex-nowrap justify-center items-center gap-3 mb-3 min-h-[150px]">
                   {total === 0 ? (
                     <span className="w-full text-center text-sm text-slate-400">Pick flavors above to fill your box.</span>
                   ) : (
@@ -296,7 +296,9 @@ export default function CurationStudioRenewed({
                             exit={{ opacity: 0, scale: 0.85 }}
                             transition={{ type: 'spring', stiffness: 280, damping: 30 }}
                             onClick={() => onRemoveSlot(i)}
-                            className="relative flex-1 min-w-0 aspect-[4/5] rounded-[18px] overflow-hidden cursor-pointer shadow-[0_10px_24px_rgba(28,136,255,0.22)]"
+                            // 6개(boxCount) 기준 고정 폭 → 다 채우면 꽉 차고, 적으면 같은 크기로 가운데 정렬
+                            style={{ width: `calc((100% - ${(boxCount - 1) * 12}px) / ${boxCount})` }}
+                            className="relative shrink-0 aspect-[4/5] rounded-[18px] overflow-hidden cursor-pointer shadow-[0_10px_24px_rgba(28,136,255,0.22)]"
                           >
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img src={flavor.image} className="absolute inset-0 w-full h-full object-cover" alt={flavor.name} />
