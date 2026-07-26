@@ -1,29 +1,33 @@
 'use client';
 
 /**
- * Curation Studio (Renewed) — /subscribe 전용 리뉴얼 버전
+ * Curation Studio (Renewed) — /subscribe 데스크탑 Fill your box 내부에 고정 삽입.
  *
- * 기존 홈페이지(PassDesktop)의 Curation Studio와는 별개의 리뉴얼 버전.
- * - 우측에서 왼쪽으로 슬라이딩(페이지를 밀어냄, 오버레이/블러 없음)
- * - 그림자/배경을 하늘색 계열로 통일
- * - 장바구니를 확대해 담긴 플레이버 카드를 그대로 표시, 하단은 카운터 겸 Clear All 버튼 하나
- * 선택 상태는 부모(/subscribe)의 slots 를 단일 진실로 삼고, add/removeSlot/clear 콜백으로 동기화한다.
+ * - 스튜디오 전체 배경을 테마 영상으로 채우고, 그 위에 하나의 큰 유리(블러) 블록을 얹는다.
+ *   유리 블록: 테마 이름 + Formula/Parameter + 테마 탭 + 플레이버 선택 그리드.
+ * - 'Innoscent'는 맛이 없어 테마에서 제외하고, 그 영상을 'Show All' 배경으로 사용.
+ * - 장바구니는 이 컴포넌트 밖(StudioBasket)으로 분리해 스튜디오 아래에 배치.
+ * 선택 상태는 부모(/subscribe)의 slots 를 단일 진실로 삼고, add/removeSlot/clear 콜백으로 동기화.
  */
 
 import React, { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X } from 'lucide-react';
 import { themes, AQUA_FLAVOR, AQUA_ID } from '@/app/pass/passData';
 
 type Slot = { themeId: string | null; flavorId: string | null };
 
+// 맛이 있는 테마만 (Innoscent 제외)
+const STUDIO_THEMES = themes.filter((t) => t.id !== 'innoscent' && t.flavors.length > 0);
+const SHOW_ALL_ID = STUDIO_THEMES.length; // 마지막 인덱스 = Show All
+const SHOW_ALL_VIDEO = themes.find((t) => t.id === 'innoscent')?.video;
+
 interface Props {
-  open: boolean;
-  onClose: () => void;
+  open?: boolean;
+  onClose?: () => void;
   boxCount: number;
   slots: Slot[];
-  width: number; // 드로어 폭(px) — 페이지 밀림 폭과 동기화
-  embedded?: boolean; // true면 슬라이드 드로어가 아니라 고정 삽입 블록으로 렌더
+  width?: number;
+  embedded?: boolean;
   onAdd: (flavorId: string) => void;
   onRemoveSlot: (index: number) => void;
   onClear: () => void;
@@ -36,12 +40,9 @@ const findFlavor = (flavorId: string): { id: string; name: string; tag: string; 
 
 const isDefaultSlot = (s: Slot) => !s.flavorId || s.flavorId === AQUA_ID;
 
-export default function CurationStudioRenewed({
-  open, onClose, boxCount, slots, width, embedded = false, onAdd, onRemoveSlot, onClear,
-}: Props) {
-  const [activeTheme, setActiveTheme] = useState(0); // 0-4: themes, 5: Show All
+export default function CurationStudioRenewed({ boxCount, slots, onAdd }: Props) {
+  const [activeTheme, setActiveTheme] = useState(0); // 0..n-1: 테마, SHOW_ALL_ID: Show All
 
-  // slots → cart(수량 맵) 파생 — 기본값 Aqua는 세지 않음
   const cart = useMemo(() => {
     const c: Record<string, number> = {};
     slots.forEach((s) => {
@@ -50,335 +51,269 @@ export default function CurationStudioRenewed({
     return c;
   }, [slots]);
 
-  const customized = slots.filter((s) => s.flavorId && s.flavorId !== AQUA_ID).length;
-  const allCustomized = customized >= boxCount;
-  const hasSlotToFill = slots.some(isDefaultSlot); // 대체할 기본(Aqua) 슬롯이 남아있나
+  const hasSlotToFill = slots.some(isDefaultSlot);
+  const isShowAll = activeTheme === SHOW_ALL_ID;
+  const currentTheme = STUDIO_THEMES[activeTheme];
+  const bgVideo = isShowAll ? SHOW_ALL_VIDEO : currentTheme?.video;
+  const gridFlavors = isShowAll ? STUDIO_THEMES.flatMap((t) => t.flavors) : currentTheme?.flavors ?? [];
 
   const add = (flavorId: string) => {
     if (!hasSlotToFill) return;
     onAdd(flavorId);
   };
 
-  const gridFlavors =
-    activeTheme === 5 ? themes.flatMap((t) => t.flavors) : themes[activeTheme]?.flavors ?? [];
+  return (
+    <div className="relative w-full h-[780px] rounded-[32px] overflow-hidden shadow-[0_20px_60px_rgba(28,136,255,0.2)] bg-black">
+      {/* 전체 배경 영상 */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={activeTheme}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.6 }}
+          className="absolute inset-0"
+        >
+          {bgVideo && (
+            <video autoPlay loop muted playsInline preload="auto" className="w-full h-full object-cover scale-105">
+              <source src={bgVideo} type="video/mp4" />
+            </video>
+          )}
+          <div className="absolute inset-0 bg-black/25" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/60" />
+        </motion.div>
+      </AnimatePresence>
 
-  const body = (
-    <>
-            {/* HEADER */}
-            <div className="absolute top-8 left-8 right-8 z-[60] flex items-center justify-between pointer-events-none">
-              <div className="pointer-events-auto">
-                <h3
-                  className={`text-2xl font-medium tracking-tight transition-colors duration-500 ${
-                    activeTheme === 5 ? 'text-gray-900' : 'text-white'
-                  }`}
-                >
-                  Curation Studio
-                </h3>
-                <p
-                  className={`text-sm font-normal mt-0.5 transition-colors duration-500 ${
-                    activeTheme === 5 ? 'text-gray-400' : 'text-white/60'
-                  }`}
-                >
-                  {activeTheme === 5 ? 'All Collection Explorer' : 'Explore our sensory themes.'}
-                </p>
-              </div>
-              {!embedded && (
-                <button
-                  onClick={onClose}
-                  className={`w-11 h-11 rounded-full backdrop-blur-md border flex items-center justify-center transition-all pointer-events-auto ${
-                    activeTheme === 5
-                      ? 'bg-gray-100 border-gray-200 text-gray-900 hover:bg-gray-200'
-                      : 'bg-white/10 border-white/20 text-white hover:bg-white/20'
-                  }`}
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              )}
-            </div>
-
-            {/* THEATER STAGE */}
-            <AnimatePresence>
-              {activeTheme !== 5 && (
-                <motion.div
-                  key="theater"
-                  initial={{ y: '-105%', height: 0 }}
-                  animate={{ y: 0, height: '48%' }}
-                  exit={{ y: '-105%', height: 0 }}
-                  transition={{ duration: 0.8, ease: [0.32, 0.72, 0, 1] }}
-                  className="relative flex-shrink-0 w-full overflow-hidden rounded-tl-[40px] bg-black z-50 shadow-2xl"
-                >
-                  <div className="absolute inset-0 w-full h-full">
-                    <AnimatePresence mode="wait">
-                      <motion.div
-                        key={activeTheme}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.6 }}
-                        className="absolute inset-0"
-                      >
-                        {themes[activeTheme]?.video && (
-                          <video autoPlay loop muted playsInline preload="auto" className="w-full h-full object-cover scale-105">
-                            <source src={themes[activeTheme].video} type="video/mp4" />
-                          </video>
-                        )}
-                        <div className="absolute inset-0 bg-black/20" />
-                        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/80" />
-                      </motion.div>
-                    </AnimatePresence>
-                  </div>
-
-                  <div className="absolute inset-x-0 bottom-0 top-24 flex items-center justify-center px-8">
-                    <div className="w-full max-w-4xl bg-black/40 backdrop-blur-[40px] rounded-[40px] border border-white/10 shadow-2xl flex flex-col p-8 gap-6 overflow-hidden">
-                      <div className="flex items-end justify-between gap-8">
-                        <AnimatePresence mode="wait">
-                          <motion.h2
-                            key={activeTheme}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
-                            transition={{ duration: 0.5 }}
-                            className="text-5xl font-medium text-white tracking-tighter leading-none lowercase flex-shrink-0"
-                          >
-                            {themes[activeTheme]?.name}
-                          </motion.h2>
-                        </AnimatePresence>
-                        <AnimatePresence mode="wait">
-                          <motion.p
-                            key={activeTheme}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
-                            transition={{ duration: 0.5 }}
-                            className="text-sm text-white/40 font-normal leading-[1.6] text-right whitespace-pre-line line-clamp-2 max-w-xs ml-auto"
-                          >
-                            {themes[activeTheme]?.description}
-                          </motion.p>
-                        </AnimatePresence>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-12 relative">
-                        <div className="absolute left-1/2 top-0 bottom-0 w-[1px] bg-gradient-to-b from-white/20 via-white/5 to-transparent" />
-                        <div className="flex flex-col gap-4">
-                          <span className="text-[10px] text-white/40 uppercase tracking-[0.3em] font-medium">Formula Composition</span>
-                          <div className="flex flex-col gap-3.5">
-                            {themes[activeTheme]?.formula?.map((item, idx) => (
-                              <div key={idx} className="flex flex-col gap-1.5">
-                                <div className="flex justify-between items-center h-5">
-                                  <span className="text-sm text-white/70 font-medium">{item.name}</span>
-                                  <span className="text-xs text-white/30 font-mono tracking-tighter">{item.value}</span>
-                                </div>
-                                <div className="h-[2px] w-full bg-white/5 rounded-full overflow-hidden">
-                                  <motion.div initial={{ width: 0 }} animate={{ width: item.p }} transition={{ duration: 1, delay: 0.4 }} className="h-full bg-gradient-to-r from-white/10 to-white/20" />
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                        <div className="flex flex-col gap-4">
-                          <span className="text-[10px] text-white/40 uppercase tracking-[0.3em] font-medium">Flavor Parameters</span>
-                          <div className="flex flex-col gap-3.5">
-                            {themes[activeTheme]?.parameters?.map((param, idx) => {
-                              const visualPos = 15 + param.value * 0.7;
-                              return (
-                                <div key={idx} className="flex flex-col gap-1.5">
-                                  <div className="relative flex justify-between items-center h-5">
-                                    <span className="text-sm text-white/70 font-medium z-10">{param.minLabel}</span>
-                                    <span className="text-sm text-white/70 font-medium z-10">{param.maxLabel}</span>
-                                  </div>
-                                  <div className="relative h-[2px] w-full bg-white/5 rounded-full">
-                                    <motion.div initial={{ width: 0 }} animate={{ width: `${visualPos}%` }} transition={{ duration: 1, delay: 0.4 }} className="h-full bg-gradient-to-r from-white/10 to-white/20" />
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* PILL NAVIGATION */}
-            <div className={`relative w-full flex justify-center z-20 transition-all duration-500 ${activeTheme === 5 ? 'pt-32 pb-6' : 'py-7'}`}>
-              <div className="inline-flex items-center gap-1 p-1.5 bg-gray-50/80 backdrop-blur-xl rounded-full">
-                {themes.map((theme, i) => (
-                  <button
-                    key={theme.id}
-                    onClick={() => setActiveTheme(i)}
-                    className={`px-5 py-2 rounded-full text-sm font-medium transition-all relative ${activeTheme === i ? 'text-white' : 'text-gray-400 hover:text-gray-600'}`}
-                  >
-                    {activeTheme === i && <motion.div layoutId="studioActiveBg" className="absolute inset-0 bg-gray-900 rounded-full z-0 shadow-lg" />}
-                    <span className="relative z-10">{theme.name}</span>
-                  </button>
-                ))}
-                <button
-                  onClick={() => setActiveTheme(5)}
-                  className={`px-5 py-2 rounded-full text-sm font-medium transition-all relative ${activeTheme === 5 ? 'text-white' : 'text-gray-400 hover:text-gray-600'}`}
-                >
-                  {activeTheme === 5 && <motion.div layoutId="studioActiveBg" className="absolute inset-0 bg-pocari-blue rounded-full z-0 shadow-lg" />}
-                  <span className="relative z-10">Show All</span>
-                </button>
-              </div>
-            </div>
-
-            {/* FLAVOR GRID */}
-            <div className="flex-1 px-8 pt-6 pb-2 relative z-10 overflow-auto scrollbar-hide">
-              <div className="max-w-6xl mx-auto">
+      {/* 콘텐츠 — 하나의 큰 유리 블록 */}
+      <div className="relative z-10 h-full p-6 md:p-8 flex flex-col">
+        <div className="flex-1 min-h-0 flex flex-col gap-5 rounded-[28px] bg-black/40 backdrop-blur-[40px] border border-white/10 shadow-2xl p-6 md:p-8 overflow-hidden">
+          {/* 테마 정보 (Show All에서는 숨김) */}
+          {!isShowAll && currentTheme && (
+            <div className="shrink-0 flex flex-col gap-5">
+              <div className="flex items-end justify-between gap-8">
                 <AnimatePresence mode="wait">
-                  <motion.div
+                  <motion.h2
                     key={activeTheme}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.35 }}
-                    className="grid grid-cols-3 lg:grid-cols-5 gap-x-4 gap-y-8 w-full pb-72"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.4 }}
+                    className="text-4xl md:text-5xl font-medium text-white tracking-tighter leading-none lowercase flex-shrink-0"
                   >
-                    {gridFlavors.map((flavor) => {
-                      const qty = cart[flavor.id] || 0;
-                      const inCart = qty > 0;
-                      return (
-                        <motion.div
-                          key={flavor.id}
-                          animate={{ borderColor: inCart ? '#1C88FF' : 'transparent' }}
-                          whileHover={{ scale: 1.05, y: -8, transition: { duration: 0.35, ease: [0.32, 0.72, 0, 1] } }}
-                          whileTap={{ scale: 0.98 }}
-                          transition={{ duration: 0.4, ease: [0.32, 0.72, 0, 1] }}
-                          className={`relative aspect-[4/5] rounded-[24px] overflow-hidden cursor-pointer shadow-[0_16px_40px_rgba(28,136,255,0.2)] border-[5px] ${
-                            !hasSlotToFill && !inCart ? 'opacity-50' : ''
-                          }`}
-                          onClick={() => add(flavor.id)}
-                        >
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={flavor.image} className="absolute inset-0 w-full h-full object-cover" alt={flavor.name} />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                          <div className="absolute bottom-0 inset-x-0 p-4">
-                            <h4 className="text-base font-medium text-white mb-0.5">{flavor.name}</h4>
-                            <span className="text-[10px] text-white/50 uppercase tracking-widest">{flavor.tag}</span>
-                          </div>
-                          <AnimatePresence>
-                            {qty > 0 && (
-                              <motion.div
-                                key="qty"
-                                initial={{ scale: 0, opacity: 0 }}
-                                animate={{ scale: 1, opacity: 1 }}
-                                exit={{ scale: 0, opacity: 0 }}
-                                transition={{ type: 'spring', stiffness: 500, damping: 24 }}
-                                className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white text-xs font-bold flex items-center justify-center shadow-lg"
-                              >
-                                {qty}
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
-                        </motion.div>
-                      );
-                    })}
-                  </motion.div>
+                    {currentTheme.name}
+                  </motion.h2>
+                </AnimatePresence>
+                <AnimatePresence mode="wait">
+                  <motion.p
+                    key={activeTheme}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.4 }}
+                    className="text-sm text-white/40 font-normal leading-[1.6] text-right whitespace-pre-line line-clamp-2 max-w-xs ml-auto"
+                  >
+                    {currentTheme.description}
+                  </motion.p>
                 </AnimatePresence>
               </div>
-            </div>
 
-            {/* BASKET — 담긴 플레이버 카드(이름 포함) 그대로 + 카운터 겸 Clear All */}
-            <div className="absolute bottom-6 inset-x-0 px-8 z-50">
-              <div className="w-full max-w-[960px] mx-auto bg-blue-50/85 backdrop-blur-3xl border border-white rounded-[32px] shadow-[0_20px_50px_rgba(28,136,255,0.25)] p-4">
-                {/* 담긴 플레이버 카드 (기본값 Aqua 포함) — boxCount 기준 고정 폭 */}
-                <div className="flex flex-nowrap justify-center items-center gap-3 mb-3 min-h-[150px]">
-                  <AnimatePresence mode="popLayout" initial={false}>
-                    {slots.map((s, i) => {
-                      const flavor = s.flavorId ? findFlavor(s.flavorId) : null;
-                      if (!flavor) return null;
-                      const isAqua = flavor.id === AQUA_ID;
+              <div className="grid grid-cols-2 gap-12 relative">
+                <div className="absolute left-1/2 top-0 bottom-0 w-[1px] bg-gradient-to-b from-white/20 via-white/5 to-transparent" />
+                <div className="flex flex-col gap-3">
+                  <span className="text-[10px] text-white/40 uppercase tracking-[0.3em] font-medium">Formula Composition</span>
+                  <div className="flex flex-col gap-3">
+                    {currentTheme.formula?.map((item, idx) => (
+                      <div key={idx} className="flex flex-col gap-1.5">
+                        <div className="flex justify-between items-center h-5">
+                          <span className="text-sm text-white/70 font-medium">{item.name}</span>
+                          <span className="text-xs text-white/30 font-mono tracking-tighter">{item.value}</span>
+                        </div>
+                        <div className="h-[2px] w-full bg-white/5 rounded-full overflow-hidden">
+                          <motion.div initial={{ width: 0 }} animate={{ width: item.p }} transition={{ duration: 1, delay: 0.3 }} className="h-full bg-gradient-to-r from-white/10 to-white/20" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex flex-col gap-3">
+                  <span className="text-[10px] text-white/40 uppercase tracking-[0.3em] font-medium">Flavor Parameters</span>
+                  <div className="flex flex-col gap-3">
+                    {currentTheme.parameters?.map((param, idx) => {
+                      const visualPos = 15 + param.value * 0.7;
                       return (
-                        <motion.div
-                          key={i}
-                          layout
-                          initial={{ opacity: 0, scale: 0.85 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.85 }}
-                          transition={{ type: 'spring', stiffness: 280, damping: 30 }}
-                          onClick={() => !isAqua && onRemoveSlot(i)}
-                          style={{ width: `calc((100% - ${(boxCount - 1) * 12}px) / ${boxCount})` }}
-                          className={`relative shrink-0 aspect-[4/5] rounded-[18px] overflow-hidden shadow-[0_10px_24px_rgba(28,136,255,0.22)] ${
-                            isAqua ? '' : 'cursor-pointer'
-                          }`}
-                        >
-                          {isAqua ? (
-                            <>
-                              <div className="absolute inset-0 bg-gradient-to-br from-[#DCEEFF] via-[#A9D6FF] to-[#7BC0FF]" />
-                              <div className="absolute inset-0 bg-[radial-gradient(circle_at_32%_26%,rgba(255,255,255,0.65),transparent_46%)]" />
-                              <div className="absolute bottom-0 inset-x-0 p-2.5">
-                                <h4 className="text-xs font-semibold text-[#0B5CAB] truncate">{flavor.name}</h4>
-                                <span className="text-[8px] text-[#0B5CAB]/60 uppercase tracking-widest">{flavor.tag}</span>
-                              </div>
-                            </>
-                          ) : (
-                            <>
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img src={flavor.image} className="absolute inset-0 w-full h-full object-cover" alt={flavor.name} />
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                              <div className="absolute bottom-0 inset-x-0 p-2.5">
-                                <h4 className="text-xs font-medium text-white truncate">{flavor.name}</h4>
-                                <span className="text-[8px] text-white/50 uppercase tracking-widest">{flavor.tag}</span>
-                              </div>
-                            </>
-                          )}
-                        </motion.div>
+                        <div key={idx} className="flex flex-col gap-1.5">
+                          <div className="relative flex justify-between items-center h-5">
+                            <span className="text-sm text-white/70 font-medium z-10">{param.minLabel}</span>
+                            <span className="text-sm text-white/70 font-medium z-10">{param.maxLabel}</span>
+                          </div>
+                          <div className="relative h-[2px] w-full bg-white/5 rounded-full">
+                            <motion.div initial={{ width: 0 }} animate={{ width: `${visualPos}%` }} transition={{ duration: 1, delay: 0.3 }} className="h-full bg-gradient-to-r from-white/10 to-white/20" />
+                          </div>
+                        </div>
                       );
                     })}
-                  </AnimatePresence>
+                  </div>
                 </div>
-
-                {/* 카운터 겸 Clear All (가로 꽉) — 다 커스텀하면 Clear all(→ Aqua로 리셋) */}
-                <button
-                  disabled={!allCustomized}
-                  onClick={() => allCustomized && onClear()}
-                  className={`w-full h-12 rounded-full font-bold text-sm transition-all duration-300 ${
-                    allCustomized
-                      ? 'bg-[#1C88FF] text-white hover:bg-blue-600 cursor-pointer'
-                      : 'bg-white text-slate-400 cursor-default'
-                  }`}
-                >
-                  {allCustomized
-                    ? 'Clear all'
-                    : `Pick ${boxCount - customized} flavor${boxCount - customized > 1 ? 's' : ''} more!`}
-                </button>
               </div>
             </div>
-    </>
-  );
+          )}
 
-  // 고정 삽입 모드 (데스크탑 Fill your box 내부) — 슬라이드/팝업 없이 그대로 박음
-  if (embedded) {
-    return (
-      <div
-        className={`relative w-full h-[600px] rounded-[32px] shadow-[0_20px_60px_rgba(28,136,255,0.2)] flex flex-col overflow-hidden transition-colors duration-500 ${
-          activeTheme === 5 ? 'bg-white' : 'bg-[#EEF5FF]'
+          {/* 테마 탭 */}
+          <div className="shrink-0 flex justify-center">
+            <div className="inline-flex items-center gap-1 p-1.5 bg-white/10 backdrop-blur-xl rounded-full border border-white/10">
+              {STUDIO_THEMES.map((theme, i) => (
+                <button
+                  key={theme.id}
+                  onClick={() => setActiveTheme(i)}
+                  className={`px-5 py-2 rounded-full text-sm font-medium transition-all relative ${activeTheme === i ? 'text-gray-900' : 'text-white/60 hover:text-white'}`}
+                >
+                  {activeTheme === i && <motion.div layoutId="studioActiveBg" className="absolute inset-0 bg-white rounded-full z-0 shadow-lg" />}
+                  <span className="relative z-10">{theme.name}</span>
+                </button>
+              ))}
+              <button
+                onClick={() => setActiveTheme(SHOW_ALL_ID)}
+                className={`px-5 py-2 rounded-full text-sm font-medium transition-all relative ${isShowAll ? 'text-white' : 'text-white/60 hover:text-white'}`}
+              >
+                {isShowAll && <motion.div layoutId="studioActiveBg" className="absolute inset-0 bg-pocari-blue rounded-full z-0 shadow-lg" />}
+                <span className="relative z-10">Show All</span>
+              </button>
+            </div>
+          </div>
+
+          {/* 플레이버 선택 그리드 */}
+          <div className="flex-1 min-h-0 overflow-auto scrollbar-hide">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeTheme}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="grid grid-cols-3 lg:grid-cols-5 gap-3 pb-2"
+              >
+                {gridFlavors.map((flavor) => {
+                  const qty = cart[flavor.id] || 0;
+                  const inCart = qty > 0;
+                  return (
+                    <motion.div
+                      key={flavor.id}
+                      animate={{ borderColor: inCart ? '#1C88FF' : 'transparent' }}
+                      whileHover={{ scale: 1.04, y: -6, transition: { duration: 0.3, ease: [0.32, 0.72, 0, 1] } }}
+                      whileTap={{ scale: 0.98 }}
+                      transition={{ duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
+                      className={`relative aspect-[4/5] rounded-[20px] overflow-hidden cursor-pointer shadow-[0_12px_30px_rgba(0,0,0,0.35)] border-[4px] ${
+                        !hasSlotToFill && !inCart ? 'opacity-50' : ''
+                      }`}
+                      onClick={() => add(flavor.id)}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={flavor.image} className="absolute inset-0 w-full h-full object-cover" alt={flavor.name} />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                      <div className="absolute bottom-0 inset-x-0 p-3">
+                        <h4 className="text-sm font-medium text-white mb-0.5 truncate">{flavor.name}</h4>
+                        <span className="text-[9px] text-white/50 uppercase tracking-widest">{flavor.tag}</span>
+                      </div>
+                      <AnimatePresence>
+                        {qty > 0 && (
+                          <motion.div
+                            key="qty"
+                            initial={{ scale: 0, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0, opacity: 0 }}
+                            transition={{ type: 'spring', stiffness: 500, damping: 24 }}
+                            className="absolute top-2.5 right-2.5 w-7 h-7 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white text-xs font-bold flex items-center justify-center shadow-lg"
+                          >
+                            {qty}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </motion.div>
+                  );
+                })}
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── 장바구니 (스튜디오 밖, 아래에 별도 배치) ── */
+export function StudioBasket({
+  boxCount, slots, onRemoveSlot, onClear,
+}: {
+  boxCount: number;
+  slots: Slot[];
+  onRemoveSlot: (index: number) => void;
+  onClear: () => void;
+}) {
+  const customized = slots.filter((s) => s.flavorId && s.flavorId !== AQUA_ID).length;
+  const allCustomized = customized >= boxCount;
+
+  return (
+    <div className="w-full bg-blue-50/85 backdrop-blur-3xl border border-white rounded-[32px] shadow-[0_20px_50px_rgba(28,136,255,0.25)] p-5">
+      {/* 담긴 플레이버 카드 (Aqua 포함) — boxCount 기준 고정 폭, 스튜디오와 같은 너비 */}
+      <div className="flex flex-nowrap justify-center items-center gap-3 mb-4">
+        <AnimatePresence mode="popLayout" initial={false}>
+          {slots.map((s, i) => {
+            const flavor = s.flavorId ? findFlavor(s.flavorId) : null;
+            if (!flavor) return null;
+            const isAqua = flavor.id === AQUA_ID;
+            return (
+              <motion.div
+                key={i}
+                layout
+                initial={{ opacity: 0, scale: 0.85 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.85 }}
+                transition={{ type: 'spring', stiffness: 280, damping: 30 }}
+                onClick={() => !isAqua && onRemoveSlot(i)}
+                style={{ width: `calc((100% - ${(boxCount - 1) * 12}px) / ${boxCount})` }}
+                className={`relative shrink-0 aspect-[4/5] rounded-[18px] overflow-hidden shadow-[0_10px_24px_rgba(28,136,255,0.22)] ${
+                  isAqua ? '' : 'cursor-pointer'
+                }`}
+              >
+                {isAqua ? (
+                  <>
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#DCEEFF] via-[#A9D6FF] to-[#7BC0FF]" />
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_32%_26%,rgba(255,255,255,0.65),transparent_46%)]" />
+                    <div className="absolute bottom-0 inset-x-0 p-2.5">
+                      <h4 className="text-xs font-semibold text-[#0B5CAB] truncate">{flavor.name}</h4>
+                      <span className="text-[8px] text-[#0B5CAB]/60 uppercase tracking-widest">{flavor.tag}</span>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={flavor.image} className="absolute inset-0 w-full h-full object-cover" alt={flavor.name} />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                    <div className="absolute bottom-0 inset-x-0 p-2.5">
+                      <h4 className="text-xs font-medium text-white truncate">{flavor.name}</h4>
+                      <span className="text-[8px] text-white/50 uppercase tracking-widest">{flavor.tag}</span>
+                    </div>
+                  </>
+                )}
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
+      </div>
+
+      <button
+        disabled={!allCustomized}
+        onClick={() => allCustomized && onClear()}
+        className={`w-full h-12 rounded-full font-bold text-sm transition-all duration-300 ${
+          allCustomized
+            ? 'bg-[#1C88FF] text-white hover:bg-blue-600 cursor-pointer'
+            : 'bg-white text-slate-400 cursor-default'
         }`}
       >
-        {body}
-      </div>
-    );
-  }
-
-  // 드로어 모드 — 오른쪽에서 슬라이딩
-  return (
-    <AnimatePresence>
-      {open && (
-        <motion.aside
-          style={{ width }}
-          initial={{ x: '100%' }}
-          animate={{ x: 0 }}
-          exit={{ x: '100%' }}
-          transition={{ type: 'spring', stiffness: 260, damping: 34 }}
-          className={`fixed top-0 right-0 h-full z-[120] rounded-l-[40px] shadow-[0_0_120px_rgba(28,136,255,0.3)] flex flex-col overflow-hidden transition-colors duration-500 ${
-            activeTheme === 5 ? 'bg-white' : 'bg-[#EEF5FF]'
-          }`}
-        >
-          {body}
-        </motion.aside>
-      )}
-    </AnimatePresence>
+        {allCustomized
+          ? 'Clear all'
+          : `Pick ${boxCount - customized} flavor${boxCount - customized > 1 ? 's' : ''} more!`}
+      </button>
+    </div>
   );
 }

@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import { SUBSCRIPTION_PLANS, PLAN_LIMITS } from '@/constants/plans';
 import { themes, AQUA_FLAVOR, AQUA_ID } from '@/app/pass/passData';
-import CurationStudioRenewed from '@/components/subscribe/CurationStudioRenewed';
+import CurationStudioRenewed, { StudioBasket } from '@/components/subscribe/CurationStudioRenewed';
 
 // 맛 선택 가능한 테마만 (innoscent 등 flavors 없는 건 제외)
 const FLAVOR_THEMES = themes.filter((t) => t.flavors && t.flavors.length > 0);
@@ -315,7 +315,7 @@ export default function SubscribeDesktop() {
         </section>
 
         {/* ── Panel 2: Fill your box ── */}
-        <section className="snap-center min-h-[64vh] flex items-center justify-center px-6">
+        <section className="snap-start min-h-screen flex flex-col items-center justify-center px-6 py-[10vh]">
           <div className="w-full max-w-4xl">
             {/* ── 2. FLAVORS (박스 채우기) ── */}
         <Section
@@ -323,18 +323,22 @@ export default function SubscribeDesktop() {
           title="Fill your box"
           caption={`Curate your ${boxCount} flavors — Aqua is the default.`}
         >
-          {/* 데스크탑: Curation Studio를 고정 삽입 (슬라이드/팝업 X) */}
+          {/* 데스크탑: Curation Studio(고정 삽입) + 그 아래 장바구니(별도 레이어) */}
           <CurationStudioRenewed
-            embedded
-            open
-            width={0}
             boxCount={boxCount}
             slots={slots}
-            onClose={() => {}}
             onAdd={addFlavorToFirstEmpty}
             onRemoveSlot={clearSlot}
             onClear={clearAllSlots}
           />
+          <div className="mt-5">
+            <StudioBasket
+              boxCount={boxCount}
+              slots={slots}
+              onRemoveSlot={clearSlot}
+              onClear={clearAllSlots}
+            />
+          </div>
 
             </Section>
           </div>
