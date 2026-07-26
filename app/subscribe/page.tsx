@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { SUBSCRIPTION_PLANS, PLAN_LIMITS } from '@/constants/plans';
 import { themes } from '@/app/pass/passData';
+import CurationStudio from '@/components/subscribe/CurationStudio';
 
 // 맛 선택 가능한 테마만 (innoscent 등 flavors 없는 건 제외)
 const FLAVOR_THEMES = themes.filter((t) => t.flavors && t.flavors.length > 0);
@@ -152,6 +153,29 @@ export default function SubscribeConfigurator() {
       return anyEmpty !== -1 ? anyEmpty : cur;
     });
   };
+
+  // ── Curation Studio(데스크탑) ↔ slots 브릿지 ──
+  const [studioOpen, setStudioOpen] = useState(false);
+  const themeOfFlavor = (flavorId: string) =>
+    themes.find((t) => t.flavors.some((f) => f.id === flavorId)) ?? null;
+  const addFlavorToFirstEmpty = (flavorId: string) => {
+    setSlots((prev) => {
+      const idx = prev.findIndex((s) => !s.flavorId);
+      if (idx === -1) return prev;
+      const next = [...prev];
+      next[idx] = { themeId: themeOfFlavor(flavorId)?.id ?? null, flavorId };
+      return next;
+    });
+  };
+  const clearSlot = (index: number) => {
+    setSlots((prev) => {
+      const next = [...prev];
+      next[index] = { themeId: null, flavorId: null };
+      return next;
+    });
+  };
+  const clearAllSlots = () =>
+    setSlots((prev) => prev.map(() => ({ themeId: null, flavorId: null })));
 
   const flavorById = (themeId: string | null, flavorId: string | null) => {
     if (!themeId || !flavorId) return null;
@@ -339,8 +363,27 @@ export default function SubscribeConfigurator() {
             </AnimatePresence>
           </motion.div>
 
-          {/* 팔레트: 테마 탭 + 맛 스와치 */}
-          <div className="bg-white rounded-3xl p-4 border border-slate-100">
+          {/* 데스크탑: Curation Studio 열기 (오른쪽에서 슬라이딩) */}
+          <button
+            onClick={() => setStudioOpen(true)}
+            className="hidden md:flex w-full items-center justify-between bg-white rounded-3xl p-5 border border-slate-100 hover:border-pocari-blue/40 hover:shadow-[0_12px_30px_rgba(28,136,255,0.12)] transition-all group"
+          >
+            <span className="flex items-center gap-3">
+              <span className="w-11 h-11 rounded-2xl bg-pocari-light flex items-center justify-center">
+                <Sparkles className="w-5 h-5 text-pocari-blue" />
+              </span>
+              <span className="text-left">
+                <span className="block text-sm font-bold text-slate-900">Open Curation Studio</span>
+                <span className="block text-[11px] text-slate-400">
+                  Explore themes and curate your {boxCount} flavors
+                </span>
+              </span>
+            </span>
+            <ArrowRight className="w-5 h-5 text-pocari-blue transition-transform group-hover:translate-x-1" />
+          </button>
+
+          {/* 모바일: 인라인 팔레트 (테마 탭 + 맛 스와치) */}
+          <div className="md:hidden bg-white rounded-3xl p-4 border border-slate-100">
             <div className="flex gap-2 overflow-x-auto pb-3 -mx-1 px-1">
               {FLAVOR_THEMES.map((t) => (
                 <button
@@ -597,6 +640,17 @@ export default function SubscribeConfigurator() {
           </div>
         </div>
       </div>
+
+      {/* Curation Studio 드로어 (데스크탑 전용) */}
+      <CurationStudio
+        open={studioOpen}
+        onClose={() => setStudioOpen(false)}
+        boxCount={boxCount}
+        slots={slots}
+        onAdd={addFlavorToFirstEmpty}
+        onRemoveSlot={clearSlot}
+        onClear={clearAllSlots}
+      />
     </div>
   );
 }
