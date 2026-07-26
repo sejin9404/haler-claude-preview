@@ -352,21 +352,36 @@ export default function SubscribeConfigurator() {
                     f ? 'shadow-[0_16px_40px_rgba(28,136,255,0.2)]' : 'bg-slate-50'
                   }`}
                 >
-                  {f ? (
-                    // 스튜디오 플레이버 카드 — 사진 + 이름
-                    <>
-                      <Image src={f.image} alt={f.name} fill sizes="200px" className="object-cover" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                      <div className="absolute bottom-0 inset-x-0 p-3">
-                        <div className="text-sm font-medium text-white truncate">{f.name}</div>
-                        <div className="text-[9px] text-white/50 uppercase tracking-widest">{f.tag}</div>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <Package className={`w-8 h-8 ${active ? 'text-pocari-blue' : 'text-slate-300'}`} />
-                    </div>
-                  )}
+                  <AnimatePresence mode="popLayout" initial={false}>
+                    {f ? (
+                      <motion.div
+                        key={f.id}
+                        initial={{ opacity: 0, scale: 1.08 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 1.08 }}
+                        transition={{ duration: 0.28, ease: [0.32, 0.72, 0, 1] }}
+                        className="absolute inset-0"
+                      >
+                        <Image src={f.image} alt={f.name} fill sizes="200px" className="object-cover" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                        <div className="absolute bottom-0 inset-x-0 p-3">
+                          <div className="text-sm font-medium text-white truncate">{f.name}</div>
+                          <div className="text-[9px] text-white/50 uppercase tracking-widest">{f.tag}</div>
+                        </div>
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        key="empty"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="absolute inset-0 flex items-center justify-center"
+                      >
+                        <Package className={`w-8 h-8 ${active ? 'text-pocari-blue' : 'text-slate-300'}`} />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                   {active && !f && (
                     <motion.div
                       layoutId="slot-ring"

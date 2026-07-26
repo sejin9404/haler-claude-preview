@@ -262,11 +262,20 @@ export default function CurationStudioRenewed({
                             <h4 className="text-base font-medium text-white mb-0.5">{flavor.name}</h4>
                             <span className="text-[10px] text-white/50 uppercase tracking-widest">{flavor.tag}</span>
                           </div>
-                          {qty > 0 && (
-                            <div className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white text-xs font-bold flex items-center justify-center shadow-lg">
-                              {qty}
-                            </div>
-                          )}
+                          <AnimatePresence>
+                            {qty > 0 && (
+                              <motion.div
+                                key="qty"
+                                initial={{ scale: 0, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                exit={{ scale: 0, opacity: 0 }}
+                                transition={{ type: 'spring', stiffness: 500, damping: 24 }}
+                                className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white text-xs font-bold flex items-center justify-center shadow-lg"
+                              >
+                                {qty}
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
                         </motion.div>
                       );
                     })}
