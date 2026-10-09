@@ -21,7 +21,6 @@ import {
 } from 'lucide-react';
 import { SUBSCRIPTION_PLANS, PLAN_LIMITS } from '@/constants/plans';
 import { themes, AQUA_FLAVOR, AQUA_ID } from '@/app/pass/passData';
-import CurationStudioRenewed from '@/components/subscribe/CurationStudioRenewed';
 
 // 맛 선택 가능한 테마만 (innoscent 등 flavors 없는 건 제외)
 const FLAVOR_THEMES = themes.filter((t) => t.flavors && t.flavors.length > 0);
@@ -41,6 +40,9 @@ const CREDIT_BALANCE = 12.0;
 
 // 마지막 선택 저장 키 (재방문 시 복원)
 const STORAGE_KEY = 'haler.subscribe.config.v2';
+// ⚠️ 테스트용 임시 스위치 (2026-08-01 진 요청): false = 저장/복원 끔 → 새로고침마다 기본값으로 리셋.
+// 테스트 끝나면 true 로 되돌릴 것 (원래 사양 = 마지막 선택 기억).
+const PERSIST_SELECTIONS = false;
 
 // 공통 부드러운 전환 (블록 확장/재배치)
 const SPRING = { type: 'spring', stiffness: 280, damping: 30 } as const;
@@ -80,6 +82,12 @@ export default function SubscribeMobile() {
   // (목업: localStorage. 실제 구현에서는 Supabase box_configs / Shopify contract에 저장)
   const [hydrated, setHydrated] = useState(false);
   React.useEffect(() => {
+    if (!PERSIST_SELECTIONS) {
+      // 테스트 모드: 남아있는 저장값도 지워서 어떤 경로로도 복원되지 않게
+      try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ }
+      setHydrated(true);
+      return;
+    }
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
@@ -105,7 +113,7 @@ export default function SubscribeMobile() {
   const freqLabel = frequency === 'custom' ? `Every ${currentMonths} months` : (FREQUENCIES.find((f) => f.id === frequency)?.label ?? '');
 
   React.useEffect(() => {
-    if (!hydrated) return; // 복원 전에는 저장하지 않음(기본값 덮어쓰기 방지)
+    if (!hydrated || !PERSIST_SELECTIONS) return; // 복원 전(또는 테스트 스위치 꺼짐)에는 저장하지 않음
     try {
       localStorage.setItem(
         STORAGE_KEY,
@@ -114,17 +122,20 @@ export default function SubscribeMobile() {
     } catch {
       /* ignore */
     }
-  }, [hydrated, planId, slots, frequency, useCredits]);
+  }, [hydrated, planId, slots, frequency, customMonths, useCredits]);
 
   // 플랜 바뀌면 슬롯 개수 재조정 (기존 선택 보존)
+  // ⚠️ hydrated 가드 필수: 마운트 flush에서 이 effect가 stale boxCount(기본 3)로 실행되면
+  // localStorage에서 복원된 6슬롯(Daily)이 3개로 잘리고 그 상태가 다시 저장돼 영구 소실된다.
   React.useEffect(() => {
+    if (!hydrated) return;
     setSlots((prev) => {
       const next = prev.slice(0, boxCount);
       while (next.length < boxCount) next.push(aquaSlot());
       return next;
     });
     setActiveSlot((s) => Math.min(s, boxCount - 1));
-  }, [boxCount]);
+  }, [hydrated, boxCount]);
 
   const plan = SUBSCRIPTION_PLANS.find((p) => p.id === planId)!;
   const basePrice = parseInt(plan.price, 10);
@@ -158,38 +169,6 @@ export default function SubscribeMobile() {
     });
   };
 
-  // ── Curation Studio(데스크탑) ↔ slots 브릿지 ──
-  const [studioOpen, setStudioOpen] = useState(false);
-  // 드로어 폭 = 페이지가 왼쪽으로 밀리는 폭 (동기화)
-  const [studioW, setStudioW] = useState(0);
-  React.useEffect(() => {
-    const calc = () => setStudioW(Math.min(880, Math.round(window.innerWidth * 0.6)));
-    calc();
-    window.addEventListener('resize', calc);
-    return () => window.removeEventListener('resize', calc);
-  }, []);
-  const themeOfFlavor = (flavorId: string) =>
-    themes.find((t) => t.flavors.some((f) => f.id === flavorId)) ?? null;
-  // 다른 맛을 고르면 첫 기본(Aqua) 슬롯을 대체
-  const addFlavorToFirstEmpty = (flavorId: string) => {
-    setSlots((prev) => {
-      const idx = prev.findIndex((s) => isDefaultSlot(s));
-      if (idx === -1) return prev;
-      const next = [...prev];
-      next[idx] = { themeId: themeOfFlavor(flavorId)?.id ?? null, flavorId };
-      return next;
-    });
-  };
-  // 제거 = 기본(Aqua)으로 되돌림
-  const clearSlot = (index: number) => {
-    setSlots((prev) => {
-      const next = [...prev];
-      next[index] = aquaSlot();
-      return next;
-    });
-  };
-  const clearAllSlots = () => setSlots((prev) => prev.map(() => aquaSlot()));
-
   const flavorById = (themeId: string | null, flavorId: string | null) => {
     if (flavorId === AQUA_ID) return AQUA_FLAVOR;
     if (!themeId || !flavorId) return null;
@@ -216,11 +195,7 @@ export default function SubscribeMobile() {
   };
 
   return (
-    <motion.div
-      animate={{ paddingRight: studioOpen ? studioW : 0 }}
-      transition={SPRING}
-      className="min-h-screen bg-[#F7FAFF] text-slate-900 pb-40"
-    >
+    <div className="min-h-screen bg-[#F7FAFF] text-slate-900 pb-40">
       {/* ── HERO / 안심 헤더 ── */}
       <header className="px-5 pt-10 pb-6 max-w-3xl mx-auto text-center">
         <motion.div
@@ -414,27 +389,8 @@ export default function SubscribeMobile() {
             </AnimatePresence>
           </motion.div>
 
-          {/* 데스크탑: Curation Studio 열기 (오른쪽에서 슬라이딩) */}
-          <button
-            onClick={() => setStudioOpen(true)}
-            className="hidden md:flex w-full items-center justify-between bg-white rounded-3xl p-5 border border-slate-100 hover:border-pocari-blue/40 hover:shadow-[0_12px_30px_rgba(28,136,255,0.12)] transition-all group"
-          >
-            <span className="flex items-center gap-3">
-              <span className="w-11 h-11 rounded-2xl bg-pocari-light flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-pocari-blue" />
-              </span>
-              <span className="text-left">
-                <span className="block text-sm font-bold text-slate-900">Open Curation Studio</span>
-                <span className="block text-[11px] text-slate-400">
-                  Explore themes and curate your {boxCount} flavors
-                </span>
-              </span>
-            </span>
-            <ArrowRight className="w-5 h-5 text-pocari-blue transition-transform group-hover:translate-x-1" />
-          </button>
-
-          {/* 모바일: 인라인 팔레트 (테마 탭 + 맛 스와치) */}
-          <div className="md:hidden bg-white rounded-3xl p-4 border border-slate-100">
+          {/* 인라인 팔레트 (테마 탭 + 맛 스와치) — 1024px 미만 전 구간에서 사용 */}
+          <div className="bg-white rounded-3xl p-4 border border-slate-100">
             <div className="flex gap-2 overflow-x-auto pb-3 -mx-1 px-1">
               {FLAVOR_THEMES.map((t) => (
                 <button
@@ -601,11 +557,7 @@ export default function SubscribeMobile() {
       </main>
 
       {/* ── STICKY 요약 + 핸드오프 CTA ── */}
-      <motion.div
-        animate={{ paddingRight: studioOpen ? studioW : 0 }}
-        transition={SPRING}
-        className="fixed bottom-0 inset-x-0 z-50"
-      >
+      <div className="fixed bottom-0 inset-x-0 z-50">
         <div className="max-w-3xl mx-auto px-4 pb-4">
           <motion.div
             initial={{ y: 40, opacity: 0 }}
@@ -681,20 +633,8 @@ export default function SubscribeMobile() {
             Payment is handled securely by Shopify. We never see your card.
           </div>
         </div>
-      </motion.div>
-
-      {/* Curation Studio 드로어 (데스크탑 전용) */}
-      <CurationStudioRenewed
-        open={studioOpen}
-        onClose={() => setStudioOpen(false)}
-        boxCount={boxCount}
-        slots={slots}
-        width={studioW}
-        onAdd={addFlavorToFirstEmpty}
-        onRemoveSlot={clearSlot}
-        onClear={clearAllSlots}
-      />
-    </motion.div>
+      </div>
+    </div>
   );
 }
 

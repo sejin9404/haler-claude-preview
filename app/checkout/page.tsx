@@ -76,7 +76,8 @@ function CheckoutInner() {
   const basePrice = parseInt(plan.price, 10);
   const credit = config.credit || 0;
   const subtotal = basePrice;
-  const total = typeof config.total === 'number' ? config.total : Math.max(0, subtotal - credit);
+  // 크레딧은 현금 결제액을 감소시키지 않는다 — 폴백도 구독료 그대로 (v5 '요금 차감 폐지')
+  const total = typeof config.total === 'number' ? config.total : subtotal;
   const freqLabel = config.freqLabel || FREQ_LABEL[config.freq] || 'Every month';
   const earnCredit = config.earnCredit || 0;
 
@@ -337,12 +338,13 @@ function OrderSummary({
         <Line label="Subtotal" value={money(subtotal)} />
         <Line label="Shipping" value="Free" />
         <Line label="Estimated taxes" value="$0.00" muted />
+        {/* 크레딧은 캡슐(추가팩·업그레이드)로만 소진 — 현금 결제액을 깎지 않으므로 합계 밖에 표기 */}
         {credit > 0 && (
           <div className="flex items-center justify-between text-[#1C88FF]">
             <span className="flex items-center gap-1.5">
-              <Tag className="w-3.5 h-3.5" /> Haler credits
+              <Tag className="w-3.5 h-3.5" /> Haler credits applied to capsules
             </span>
-            <span className="font-semibold">− {money(credit)}</span>
+            <span className="font-semibold">{money(credit)}</span>
           </div>
         )}
       </div>

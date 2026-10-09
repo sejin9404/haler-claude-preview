@@ -125,6 +125,23 @@ export const themes = [
 export const AQUA_FLAVOR = { id: 'aqua', name: 'Aqua', tag: 'Pure', image: '', isDefault: true };
 export const AQUA_ID = 'aqua';
 
+// 콤보 팩 — 일반 팩(같은 맛 5개)과 달리, 그 테마의 플레이버 5종이 1개씩 들어있는 구성.
+// id 규칙: `combo-${themeId}` — 일반 flavorId 와 겹치지 않게 접두어로 구분해 슬롯/장바구니 로직을 그대로 재사용한다.
+export const COMBO_THEMES = themes.filter((t) => t.id !== 'innoscent' && t.flavors.length > 0);
+export const comboIdFor = (themeId: string) => `combo-${themeId}`;
+export const isComboId = (id: string) => id.startsWith('combo-');
+export const comboThemeId = (comboId: string) => comboId.replace('combo-', '');
+export const COMBO_FLAVORS = COMBO_THEMES.map((t) => ({
+  id: comboIdFor(t.id),
+  name: `${t.name} Combo`,
+  tag: 'MIX',
+  image: t.flavors[0]?.image ?? '',
+  isCombo: true as const,
+  themeId: t.id,
+  // 콤보 바 UI에서 미니 썸네일 5개를 한 줄로 보여줄 때 쓰는 원본 목록
+  thumbnails: t.flavors.map((f) => f.image),
+}));
+
 export { SUBSCRIPTION_PLANS as plans, BENEFIT_PILLS as benefitPills } from '@/constants/plans';
 
 export const getPlanLimit = (selectedPlan: string | null) => {

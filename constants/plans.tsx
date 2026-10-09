@@ -34,45 +34,45 @@ export const SUBSCRIPTION_PLANS: Plan[] = [
     id: 'light', 
     tag: 'Light User', 
     title: 'Light', 
-    boxes: '2 BOXES', 
-    price: '39', 
+    boxes: '10 xems',
+    price: '39',
     period: '/mo',
-    features: [ 
-      { icon: <Package className="w-3.5 h-3.5" />, text: '10 xems in 2 packs' }, 
-      { icon: <Truck className="w-3.5 h-3.5" />, text: 'Free Shipping' }, 
-      { icon: <Tag className="w-3.5 h-3.5" />, text: '3% Discount' } 
-    ], 
+    features: [
+      { icon: <Package className="w-3.5 h-3.5" />, text: '5 xems in a pack × 2' },
+      { icon: <Truck className="w-3.5 h-3.5" />, text: 'Free Shipping' },
+      { icon: <Tag className="w-3.5 h-3.5" />, text: 'Extra packs for $18' },
+      { icon: <Coins className="w-3.5 h-3.5" />, text: 'Upgrade to Daily with credits' }
+    ],
     isPopular: false 
   },
   { 
     id: 'essential',
     tag: 'MOST PICK',
     title: 'Ritual',
-    boxes: '3 BOXES', 
-    price: '49', 
+    boxes: '15 xems',
+    price: '49',
     period: '/mo',
-    features: [ 
-      { icon: <Package className="w-3.5 h-3.5" />, text: '15 xems in 3 packs' }, 
-      { icon: <Truck className="w-3.5 h-3.5" />, text: 'Free Shipping' }, 
-      { icon: <Tag className="w-3.5 h-3.5" />, text: '18% Discount' }, 
-      { icon: <Coins className="w-3.5 h-3.5" />, text: '5% Credit' } 
-    ], 
+    features: [
+      { icon: <Package className="w-3.5 h-3.5" />, text: '5 xems in a pack × 3' },
+      { icon: <Truck className="w-3.5 h-3.5" />, text: 'Free Shipping' },
+      { icon: <Tag className="w-3.5 h-3.5" />, text: 'Extra packs for $15' },
+      { icon: <Coins className="w-3.5 h-3.5" />, text: 'Upgrade to Daily with credits' }
+    ],
     isPopular: true 
   },
   { 
     id: 'daily', 
     tag: 'BEST VALUE', 
     title: 'Daily', 
-    boxes: '6 BOXES', 
-    price: '79', 
+    boxes: '30 xems',
+    price: '79',
     period: '/mo',
-    features: [ 
-      { icon: <Package className="w-3.5 h-3.5" />, text: '30 xems in 6 packs' }, 
-      { icon: <Truck className="w-3.5 h-3.5" />, text: 'Free Shipping' }, 
-      { icon: <Tag className="w-3.5 h-3.5" />, text: '34% Discount' }, 
-      { icon: <Coins className="w-3.5 h-3.5" />, text: '10% Credit' }, 
-      { icon: <Crown className="w-3.5 h-3.5" />, text: 'Exclusive Gift' } 
-    ], 
+    features: [
+      { icon: <Package className="w-3.5 h-3.5" />, text: '5 xems in a pack × 6' },
+      { icon: <Truck className="w-3.5 h-3.5" />, text: 'Free Shipping' },
+      { icon: <Tag className="w-3.5 h-3.5" />, text: 'Extra packs for $12' },
+      { icon: <Crown className="w-3.5 h-3.5" />, text: 'Exclusive Gift' }
+    ],
     isPopular: false, 
     isBestValue: true 
   }
